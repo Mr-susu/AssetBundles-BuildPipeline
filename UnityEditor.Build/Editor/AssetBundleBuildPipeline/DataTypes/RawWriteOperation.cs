@@ -22,10 +22,15 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
         {
             if (command == null)
                 return null;
-            if (command.dependencies.IsNullOrEmpty())
-                return null;
-            var result = allCommands.Where(x => command.dependencies.Contains(x.internalName));
-            return result.ToList(); // TODO: Need to validate that we had all the dependencies
+            var results = allCommands.Where(x =>
+            {
+                if (!command.dependencies.IsNullOrEmpty() && command.dependencies.Contains(x.internalName))
+                    return true;
+                if (x != null && !x.dependencies.IsNullOrEmpty() && x.dependencies.Contains(command.internalName))
+                    return true;
+                return false;
+            });
+            return results.ToList(); // TODO: Need to validate that we had all the dependencies
         }
 
         public virtual WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage)
