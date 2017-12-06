@@ -10,6 +10,6 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
 
         List<WriteCommand> CalculateDependencies(List<WriteCommand> allCommands);
 
-        WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage);
+        WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage);
     }
 }

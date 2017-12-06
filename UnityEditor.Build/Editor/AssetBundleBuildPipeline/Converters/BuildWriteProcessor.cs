@@ -188,7 +188,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             op.command.internalName = string.Format("archive:/{0}/{1}", bundleFileName, op.command.fileName);
             // TODO: Rethink the way we do dependencies here, assetToBundles is for bundles only, won't work for PlayerData or Raw Data.
             op.command.dependencies = buildInfo.assetToBundles[scene].OrderBy(x => x).Where(x => x != bundleName).Select(x => string.Format("archive:/{0}/{0}", GenerateInternalFileName(x))).ToList();
-
+            buildInfo.sceneUsageTags.TryGetValue(scene, out op.usageTags);
             op.command.serializeObjects = new List<SerializationInfo>();
             op.preloadInfo.preloadObjects = new List<ObjectIdentifier>();
             op.preloadInfo.explicitDataLayout = true;

@@ -33,9 +33,9 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
             return results.ToList(); // TODO: Need to validate that we had all the dependencies
         }
 
-        public virtual WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage)
+        public virtual WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
-            return BundleBuildInterface.WriteSerializedFile(outputFolder, command, dependencies, settings, globalUsage);
+            return BundleBuildInterface.WriteSerializedFile(outputFolder, command, dependencies, settings, globalUsage, buildUsage);
         }
     }
 }

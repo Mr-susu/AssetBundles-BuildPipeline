@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
-    public class SceneDependency : ADataConverter<GUID, BuildSettings, SceneDependencyInfo>
+    public class SceneDependency : ADataConverter<GUID, BuildSettings, BuildUsageTagSet, SceneDependencyInfo>
     {
         public override uint Version { get { return 1; } }
 
@@ -44,7 +44,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return path;
         }
 
-        public override BuildPipelineCodes Convert(GUID scene, BuildSettings settings, out SceneDependencyInfo output)
+        public override BuildPipelineCodes Convert(GUID scene, BuildSettings settings, BuildUsageTagSet usageSet, out SceneDependencyInfo output)
         {
             StartProgressBar("Calculating Scene Dependencies", 1);
             if (!ValidScene(scene))
@@ -63,16 +63,16 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             }
 
             Hash128 hash = CalculateInputHash(scene, settings);
-            if (UseCache && BuildCache.TryLoadCachedResults(hash, out output))
+            if (UseCache && BuildCache.TryLoadCachedResults(hash, out output) && BuildCache.TryLoadCachedResults(hash, out usageSet))
             {
                 if (!EndProgressBar())
                     return BuildPipelineCodes.Canceled;
                 return BuildPipelineCodes.SuccessCached;
             }
 
-            output = BundleBuildInterface.PrepareScene(scenePath, settings, GetBuildPath(hash));
+            output = BundleBuildInterface.PrepareScene(scenePath, settings, usageSet, GetBuildPath(hash));
 
-            if (UseCache && !BuildCache.SaveCachedResults(hash, output))
+            if (UseCache && !BuildCache.SaveCachedResults(hash, output) && !BuildCache.SaveCachedResults(hash, usageSet))
                 BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", scene);
 
             if (!EndProgressBar())

@@ -14,7 +14,7 @@ namespace UnityEditor.Build.AssetBundle.Shared
 
             // Write out resource files
             var commandSetWriter = new BuildWriteWriter(useCache, progressTracker);
-            var exitCode = commandSetWriter.Convert(writeInfo, settings, buildInfo.buildGlobalUsage, out result);
+            var exitCode = commandSetWriter.Convert(writeInfo, settings, buildInfo.buildGlobalUsage, buildInfo.buildUsage, out result);
             if (exitCode < BuildPipelineCodes.Success)
                 return exitCode;
 

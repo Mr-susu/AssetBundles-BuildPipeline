@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Experimental.Build.AssetBundle;
+using UnityEngine;
 
 namespace UnityEditor.Build.Utilities
 {
@@ -39,6 +41,23 @@ namespace UnityEditor.Build.Utilities
             var t = array[index2];
             array[index2] = array[index1];
             array[index1] = t;
+        }
+
+        public static void UnionWith(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, Experimental.Build.AssetBundle.BuildUsageTagSet other)
+        {
+            // NO OP FOR NOW
+        }
+
+        public static Hash128 GetUsageHashForObjectIdentifier(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, ObjectIdentifier objectID)
+        {
+            // NO OP FOR NOW
+            return HashingMethods.CalculateMD5Hash(objectID);
+        }
+
+        public static Hash128 GetUsageHashForObjectIdentifiers(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, ObjectIdentifier[] objectIDs)
+        {
+            // NO OP FOR NOW
+            return HashingMethods.CalculateMD5Hash(objectIDs);
         }
     }
 }

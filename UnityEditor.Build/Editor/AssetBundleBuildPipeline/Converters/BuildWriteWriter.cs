@@ -15,7 +15,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
 
         public BuildWriteWriter(bool useCache, IProgressTracker progressTracker) : base(useCache, progressTracker) { }
 
-        private Hash128 CalculateInputHash(IWriteOperation operation, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage)
+        private Hash128 CalculateInputHash(IWriteOperation operation, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
             if (!UseCache)
                 return new Hash128();
@@ -37,7 +37,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             if (sceneOp != null)
                 assetHashes.Add(HashingMethods.CalculateFileMD5Hash(sceneOp.processedScene));
 
-            return HashingMethods.CalculateMD5Hash(Version, operation, assetHashes, dependencies, globalUsage, settings);
+            return HashingMethods.CalculateMD5Hash(Version, operation, assetHashes, dependencies, globalUsage, buildUsage, settings);
         }
 
         private string GetBuildPath(Hash128 hash)
@@ -104,14 +104,21 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
         {
             WriteResult result;
             var dependencies = op.CalculateDependencies(allCommands);
-            Hash128 hash = CalculateInputHash(op, dependencies, settings, globalUsage);
+            
+            var objectIDs = op.command.serializeObjects.Select(x => x.serializationObject).ToArray();
+            var dependentIDs = dependencies.SelectMany(x => x.serializeObjects.Select(y => y.serializationObject)).ToArray();
+            
+            BuildUsageTagSet buildUsage = new BuildUsageTagSet();
+            BundleBuildInterface.CalculateBuildUsageTags(objectIDs, dependentIDs, globalUsage, buildUsage);
+
+            Hash128 hash = CalculateInputHash(op, dependencies, settings, globalUsage, buildUsage);
             if (UseCache && BuildCache.TryLoadCachedResults(hash, out result))
             {
                 outResults.Add(result);
                 return;
             }
 
-            result = op.Write(GetBuildPath(hash), dependencies, settings, globalUsage);
+            result = op.Write(GetBuildPath(hash), dependencies, settings, globalUsage, buildUsage);
             outResults.Add(result);
 
             if (UseCache && !BuildCache.SaveCachedResults(hash, result))

@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
@@ -19,9 +19,10 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
             m_Info = other.m_Info;
         }
 
-        public override WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage)
+        public override WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
-            return BundleBuildInterface.WriteSceneSerializedFile(outputFolder, scene, processedScene, command, dependencies, settings, globalUsage, preloadInfo, info);
+            buildUsage.UnionWith(usageTags);
+            return BundleBuildInterface.WriteSceneSerializedFile(outputFolder, scene, processedScene, command, dependencies, settings, globalUsage, buildUsage, preloadInfo, info);
         }
     }
 }

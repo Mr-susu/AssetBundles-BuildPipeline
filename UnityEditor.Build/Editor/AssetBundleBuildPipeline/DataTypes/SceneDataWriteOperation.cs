@@ -11,6 +11,7 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
         public string scene = "";
         public string processedScene = "";
         public PreloadInfo preloadInfo = new PreloadInfo();
+        public BuildUsageTagSet usageTags = new BuildUsageTagSet();
 
         public SceneDataWriteOperation() { }
         public SceneDataWriteOperation(RawWriteOperation other) : base(other) { }
@@ -20,11 +21,13 @@ namespace UnityEditor.Build.AssetBundle.DataTypes
             scene = other.scene;
             processedScene = other.processedScene;
             preloadInfo = other.preloadInfo;
+            usageTags = other.usageTags;
         }
 
-        public override WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage)
+        public override WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
-            return BundleBuildInterface.WriteSceneSerializedFile(outputFolder, scene, processedScene, command, dependencies, settings, globalUsage, preloadInfo);
+            buildUsage.UnionWith(usageTags);
+            return BundleBuildInterface.WriteSceneSerializedFile(outputFolder, scene, processedScene, command, dependencies, settings, globalUsage, buildUsage, preloadInfo);
         }
     }
 }

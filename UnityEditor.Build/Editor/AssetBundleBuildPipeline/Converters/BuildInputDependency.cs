@@ -53,7 +53,8 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
 
                         // Get Scene Dependency Information
                         SceneDependencyInfo sceneInfo;
-                        BuildPipelineCodes errorCode = m_SceneDependency.Convert(asset.asset, settings, out sceneInfo);
+                        BuildUsageTagSet usageTags = new BuildUsageTagSet();
+                        BuildPipelineCodes errorCode = m_SceneDependency.Convert(asset.asset, settings, usageTags, out sceneInfo);
                         if (errorCode < BuildPipelineCodes.Success)
                         {
                             EndProgressBar();
@@ -62,6 +63,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
 
                         // Add generated scene information to BuildDependencyInfo
                         output.sceneInfo.Add(asset.asset, sceneInfo);
+                        output.sceneUsageTags.Add(asset.asset, usageTags);
 
                         // Add usage tags to BuildDependencyInfo
                         output.buildGlobalUsage |= sceneInfo.globalUsage;

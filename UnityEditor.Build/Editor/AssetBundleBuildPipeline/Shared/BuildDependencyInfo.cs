@@ -13,7 +13,8 @@ namespace UnityEditor.Build
         public Dictionary<GUID, SceneDependencyInfo> sceneInfo = new Dictionary<GUID, SceneDependencyInfo>();
 
         // Usage Tags
-        public BuildUsageTagGlobal buildGlobalUsage;
+        public BuildUsageTagGlobal buildGlobalUsage = new BuildUsageTagGlobal();
+        public Dictionary<GUID, BuildUsageTagSet> sceneUsageTags = new Dictionary<GUID, BuildUsageTagSet>();
 
         // Lookup maps for fast dependency calculation
         public Dictionary<GUID, List<string>> assetToBundles = new Dictionary<GUID, List<string>>();
