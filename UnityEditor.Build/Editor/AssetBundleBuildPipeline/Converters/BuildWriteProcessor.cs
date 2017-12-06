@@ -155,7 +155,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
                 sceneLoadInfo.Add(new SceneLoadInfo
                 {
                     asset = scene,
-                    address = scenePath,   // TODO: Need to carry over address from BuildInput
+                    address = buildInfo.sceneAddress[scene],
                     internalName = GenerateInternalFileName(scenePath)
                 });
 

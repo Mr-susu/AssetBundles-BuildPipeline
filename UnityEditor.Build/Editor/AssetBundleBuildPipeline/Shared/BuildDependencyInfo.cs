@@ -11,6 +11,7 @@ namespace UnityEditor.Build
         // AssetLoadInfo for all assets
         public Dictionary<GUID, AssetLoadInfo> assetInfo = new Dictionary<GUID, AssetLoadInfo>();
         public Dictionary<GUID, SceneDependencyInfo> sceneInfo = new Dictionary<GUID, SceneDependencyInfo>();
+        public Dictionary<GUID, string> sceneAddress = new Dictionary<GUID, string>();
 
         // Usage Tags
         public BuildUsageTagGlobal buildGlobalUsage = new BuildUsageTagGlobal();

@@ -64,6 +64,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
                         // Add generated scene information to BuildDependencyInfo
                         output.sceneInfo.Add(asset.asset, sceneInfo);
                         output.sceneUsageTags.Add(asset.asset, usageTags);
+                        output.sceneAddress.Add(asset.asset, asset.address);
 
                         // Add usage tags to BuildDependencyInfo
                         output.buildGlobalUsage |= sceneInfo.globalUsage;
