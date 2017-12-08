@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
@@ -43,21 +44,20 @@ namespace UnityEditor.Build.Utilities
             array[index1] = t;
         }
 
-        public static void UnionWith(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, Experimental.Build.AssetBundle.BuildUsageTagSet other)
+        public static bool ValidScene(GUID asset)
         {
-            // NO OP FOR NOW
+            var path = AssetDatabase.GUIDToAssetPath(asset.ToString());
+            if (string.IsNullOrEmpty(path) || !path.EndsWith(".unity") || !File.Exists(path))
+                return false;
+            return true;
         }
 
-        public static Hash128 GetUsageHashForObjectIdentifier(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, ObjectIdentifier objectID)
+        public static bool ValidAsset(GUID asset)
         {
-            // NO OP FOR NOW
-            return HashingMethods.CalculateMD5Hash(objectID);
-        }
-
-        public static Hash128 GetUsageHashForObjectIdentifiers(this Experimental.Build.AssetBundle.BuildUsageTagSet usageSet, ObjectIdentifier[] objectIDs)
-        {
-            // NO OP FOR NOW
-            return HashingMethods.CalculateMD5Hash(objectIDs);
+            var path = AssetDatabase.GUIDToAssetPath(asset.ToString());
+            if (string.IsNullOrEmpty(path) || path.EndsWith(".unity") || !File.Exists(path))
+                return false;
+            return true;
         }
     }
 }

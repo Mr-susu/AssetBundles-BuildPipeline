@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
@@ -74,6 +75,7 @@ namespace UnityEditor.Build
             runner.AddTask(new CalculateBundleLookups());
             runner.AddTask(new PostDependencyCallback());
             runner.AddTask(new StripUnusedSpriteSources());
+            runner.AddTask(new GenerateWriteCommands(new Unity5PackedIdentifiers()));
             return runner;
         }
     }

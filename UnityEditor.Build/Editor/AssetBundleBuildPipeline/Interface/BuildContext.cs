@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor.Build.AssetBundle;
+using UnityEditor.Build.AssetBundle.DataTypes;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
@@ -26,7 +28,13 @@ namespace UnityEditor.Build
         Dictionary<string, List<GUID>> BundleToAssets { get; }
     }
 
-    public class BuildContext : IBundlesInput, IDependencyInfo
+    public interface IWriteInfo
+    {
+        Dictionary<string, IWriteOperation> AssetBundles { get; }
+        Dictionary<string, List<IWriteOperation>> SceneBundles { get; }
+    }
+
+    public class BuildContext : IBundlesInput, IDependencyInfo, IWriteInfo
     {
         public BuildInput BundleInput { get; set; }
 
@@ -41,6 +49,8 @@ namespace UnityEditor.Build
         }
         public Dictionary<GUID, List<string>> AssetToBundles { get { return dependencyData.assetToBundles; } }
         public Dictionary<string, List<GUID>> BundleToAssets { get { return dependencyData.bundleToAssets; } }
+        public Dictionary<string, IWriteOperation> AssetBundles { get { return writeInfo.assetBundles; } }
+        public Dictionary<string, List<IWriteOperation>> SceneBundles { get { return writeInfo.sceneBundles; } }
 
         // TODO: Replace these classes maybe?
         private BuildDependencyInfo dependencyData = new BuildDependencyInfo();

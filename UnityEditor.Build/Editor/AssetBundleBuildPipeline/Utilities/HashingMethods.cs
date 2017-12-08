@@ -7,7 +7,7 @@ namespace UnityEditor.Build.Utilities
 {
     public static class HashingMethods
     {
-        public static Hash128 CalculateMD5Hash(object obj)
+        public static byte[] CalculateMD5(object obj)
         {
             byte[] hash;
             using (var md5 = MD5.Create())
@@ -20,10 +20,16 @@ namespace UnityEditor.Build.Utilities
                     hash = md5.ComputeHash(stream);
                 }
             }
+            return hash;
+        }
+
+        public static Hash128 CalculateMD5Hash(object obj)
+        {
+            byte[] hash = CalculateMD5(obj);
             return new Hash128(hash[0], hash[1], hash[2], hash[3]);
         }
 
-        public static Hash128 CalculateMD5Hash(params object[] objects)
+        public static byte[] CalculateMD5(params object[] objects)
         {
             byte[] hash;
             using (var md5 = MD5.Create())
@@ -41,10 +47,16 @@ namespace UnityEditor.Build.Utilities
                     hash = md5.ComputeHash(stream);
                 }
             }
+            return hash;
+        }
+
+        public static Hash128 CalculateMD5Hash(params object[] objects)
+        {
+            byte[] hash = CalculateMD5(objects);
             return new Hash128(hash[0], hash[1], hash[2], hash[3]);
         }
 
-        public static Hash128 CalculateFileMD5Hash(string filePath)
+        public static byte[] CalculateFileMD5(string filePath)
         {
             byte[] hash;
             using (var md5 = MD5.Create())
@@ -54,6 +66,12 @@ namespace UnityEditor.Build.Utilities
                     hash = md5.ComputeHash(stream);
                 }
             }
+            return hash;
+        }
+
+        public static Hash128 CalculateFileMD5Hash(string filePath)
+        {
+            byte[] hash = CalculateFileMD5(filePath);
             return new Hash128(hash[0], hash[1], hash[2], hash[3]);
         }
     }
