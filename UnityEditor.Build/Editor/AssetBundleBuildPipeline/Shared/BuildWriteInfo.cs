@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.Build.AssetBundle.DataTypes;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.AssetBundle
 {
     [Serializable]
     public class BuildWriteInfo

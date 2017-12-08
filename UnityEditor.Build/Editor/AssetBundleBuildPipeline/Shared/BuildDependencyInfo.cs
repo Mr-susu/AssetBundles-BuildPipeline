@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.AssetBundle
 {
     [Serializable]
     public class BuildDependencyInfo

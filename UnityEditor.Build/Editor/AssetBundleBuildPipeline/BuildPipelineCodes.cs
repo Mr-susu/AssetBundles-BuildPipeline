@@ -7,7 +7,8 @@
         SuccessCached = 1,
         // Error Codes are Negative!
         Error = -1,
-        Canceled = -2,
-        UnsavedChanges = -3
+        Exception = -2,
+        Canceled = -3,
+        UnsavedChanges = -4
     }
 }
