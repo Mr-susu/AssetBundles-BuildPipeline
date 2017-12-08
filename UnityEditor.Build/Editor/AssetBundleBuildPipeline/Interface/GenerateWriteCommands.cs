@@ -41,11 +41,6 @@ namespace UnityEditor.Build
                     var ops = CreateSceneBundleWriteOperations(bundle.Key, bundle.Value, input);
                     output.SceneBundles.Add(bundle.Key, ops);
                 }
-                else
-                {
-                    BuildLogger.LogError("Bundle '{0}' contains mixed assets and scenes.", bundle.Key);
-                    return BuildPipelineCodes.Error;
-                }
             }
             return BuildPipelineCodes.Success;
         }
@@ -72,7 +67,7 @@ namespace UnityEditor.Build
             return true;
         }
 
-        private IWriteOperation CreateAssetBundleWriteOperation(string bundleName, List<GUID> assets, IDependencyInfo input)
+        protected IWriteOperation CreateAssetBundleWriteOperation(string bundleName, List<GUID> assets, IDependencyInfo input)
         {
             var dependencies = new HashSet<string>();
             var serializeObjects = new HashSet<ObjectIdentifier>();
@@ -120,7 +115,7 @@ namespace UnityEditor.Build
             return op;
         }
 
-        private List<IWriteOperation> CreateSceneBundleWriteOperations(string bundleName, List<GUID> scenes, IDependencyInfo input)
+        protected List<IWriteOperation> CreateSceneBundleWriteOperations(string bundleName, List<GUID> scenes, IDependencyInfo input)
         {
             // The 'Folder' we mount asset bundles to is the same as the internal file name of the first file in the archive
             var bundleFileName = PackingMethod.GenerateInternalFileName(AssetDatabase.GUIDToAssetPath(scenes[0].ToString()));
@@ -158,7 +153,7 @@ namespace UnityEditor.Build
             return ops.Cast<IWriteOperation>().ToList();
         }
 
-        private IWriteOperation CreateSceneDataWriteOperation(string bundleName, string bundleFileName, GUID scene, IDependencyInfo input)
+        protected IWriteOperation CreateSceneDataWriteOperation(string bundleName, string bundleFileName, GUID scene, IDependencyInfo input)
         {
             var sceneInfo = input.SceneInfo[scene];
 

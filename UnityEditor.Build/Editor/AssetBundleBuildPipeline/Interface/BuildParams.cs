@@ -1,6 +1,8 @@
 ﻿using System;
+using System.IO;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
+using UnityEngine;
 
 namespace UnityEditor.Build
 {
@@ -12,6 +14,8 @@ namespace UnityEditor.Build
         string TempOutputFolder { get; }
         bool UseCache { get; }
         IProgressTracker ProgressTracker { get; }
+
+        string GetTempOrCacheBuildPath(Hash128 hash);
     }
 
     public class BuildParams : IBuildParams
@@ -48,6 +52,15 @@ namespace UnityEditor.Build
             TempOutputFolder = tempOutputFolder;
             UseCache = useCache;
             ProgressTracker = progressTracker;
+        }
+
+        public string GetTempOrCacheBuildPath(Hash128 hash)
+        {
+            var path = TempOutputFolder;
+            if (UseCache)
+                path = BuildCache.GetPathForCachedArtifacts(hash);
+            Directory.CreateDirectory(path);
+            return path;
         }
     }
 }

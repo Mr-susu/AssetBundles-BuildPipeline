@@ -68,7 +68,7 @@ namespace UnityEditor.Build
                     continue;
                 }
 
-                sceneInfo = BundleBuildInterface.PrepareScene(scenePath, BuildParams.Settings, usageTags, BuildParams.TempOutputFolder);
+                sceneInfo = BundleBuildInterface.PrepareScene(scenePath, BuildParams.Settings, usageTags, BuildParams.GetTempOrCacheBuildPath(hash));
                 SetOutputInformation(assetID, sceneInfo, usageTags, output);
 
                 if (TrySaveToCache(hash, sceneInfo, usageTags))

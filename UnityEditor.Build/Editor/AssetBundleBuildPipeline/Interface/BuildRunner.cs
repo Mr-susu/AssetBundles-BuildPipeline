@@ -12,6 +12,13 @@ namespace UnityEditor.Build
         BuildPipelineCodes Run(object context);
     }
 
+    public interface IBuildTask<I1>
+    {
+        int Version { get; }
+
+        BuildPipelineCodes Run(I1 input);
+    }
+
     public interface IBuildTask<I1, O1>
     {
         int Version { get; }
@@ -67,15 +74,24 @@ namespace UnityEditor.Build
         public static BuildRunner Create(IBuildParams input)
         {
             var runner = new BuildRunner(input);
+            // Setup
             runner.AddTask(new ProjectInCleanState());
             runner.AddTask(new SwitchToBuildPlatform());
             runner.AddTask(new RebuildAtlasCache());
+            // Dependency
             runner.AddTask(new CalculateSceneDependencyData());
             runner.AddTask(new CalculateAssetDependencyData());
             runner.AddTask(new CalculateBundleLookups());
             runner.AddTask(new PostDependencyCallback());
+            // Packing
+            runner.AddTask(new ValidateBundleAssignments());
             runner.AddTask(new StripUnusedSpriteSources());
-            runner.AddTask(new GenerateWriteCommands(new Unity5PackedIdentifiers()));
+            var packer = new Unity5PackedIdentifiers();
+            runner.AddTask(new GenerateWriteCommands(packer)); // TODO: maybe split up the generator per command type (Scene, bundle, raw, etc)
+            runner.AddTask(new PostPackingCallback());
+            // Writing
+            runner.AddTask(new WriteAssetBundles());
+
             return runner;
         }
     }

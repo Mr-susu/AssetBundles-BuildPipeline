@@ -17,6 +17,11 @@ namespace UnityEditor.Build
         Func<IBuildParams, IDependencyInfo, BuildPipelineCodes> PostDependencyCallback { get; }
     }
 
+    public interface IPackingCallback
+    {
+        Func<IBuildParams, IDependencyInfo, IWriteInfo, BuildPipelineCodes> PostPackingCallback { get; }
+    }
+
     public interface IDependencyInfo
     {
         Dictionary<GUID, AssetLoadInfo> AssetInfo { get; }
@@ -34,7 +39,13 @@ namespace UnityEditor.Build
         Dictionary<string, List<IWriteOperation>> SceneBundles { get; }
     }
 
-    public class BuildContext : IBundlesInput, IDependencyInfo, IWriteInfo
+    public interface IResultInfo
+    {
+        Dictionary<string, uint> BundleCRCs { get; }
+        Dictionary<string, List<WriteResult>> BundleResults { get; }
+    }
+
+    public class BuildContext : IBundlesInput, IDependencyInfo, IWriteInfo, IResultInfo, IDependencyCallback, IPackingCallback
     {
         public BuildInput BundleInput { get; set; }
 
@@ -51,6 +62,11 @@ namespace UnityEditor.Build
         public Dictionary<string, List<GUID>> BundleToAssets { get { return dependencyData.bundleToAssets; } }
         public Dictionary<string, IWriteOperation> AssetBundles { get { return writeInfo.assetBundles; } }
         public Dictionary<string, List<IWriteOperation>> SceneBundles { get { return writeInfo.sceneBundles; } }
+        public Dictionary<string, uint> BundleCRCs { get { return resultInfo.bundleCRCs; } }
+        public Dictionary<string, List<WriteResult>> BundleResults { get { return resultInfo.bundleResults; } }
+
+        public Func<IBuildParams, IDependencyInfo, BuildPipelineCodes> PostDependencyCallback { get; set; }
+        public Func<IBuildParams, IDependencyInfo, IWriteInfo, BuildPipelineCodes> PostPackingCallback { get; set; }
 
         // TODO: Replace these classes maybe?
         private BuildDependencyInfo dependencyData = new BuildDependencyInfo();
