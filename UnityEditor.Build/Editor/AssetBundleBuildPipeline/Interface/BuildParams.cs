@@ -18,7 +18,7 @@ namespace UnityEditor.Build
         string GetTempOrCacheBuildPath(Hash128 hash);
     }
 
-    public class BuildParams : IBuildParams
+    public class DefaultBuildParams : IBuildParams
     {
         public BuildSettings Settings { get; protected set; }
         public BuildCompression Compression { get; protected set; }
@@ -42,7 +42,7 @@ namespace UnityEditor.Build
         public bool UseCache { get; protected set; }
         public IProgressTracker ProgressTracker { get; protected set; }
 
-        public BuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
+        public DefaultBuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
         {
             Settings = settings;
             Compression = compression;
