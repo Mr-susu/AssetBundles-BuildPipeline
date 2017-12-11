@@ -40,13 +40,13 @@ namespace UnityEditor.Build.Utilities
         {
             Debug.LogWarning(string.Format(msg, attrs));
         }
-        
+
         [Conditional("DEBUG")]
         public static void LogError(string msg)
         {
             Debug.LogError(msg);
         }
-        
+
         [Conditional("DEBUG")]
         public static void LogError(object msg)
         {
@@ -57,6 +57,12 @@ namespace UnityEditor.Build.Utilities
         public static void LogError(string msg, params object[] attrs)
         {
             Debug.LogError(string.Format(msg, attrs));
+        }
+
+        [Conditional("DEBUG")]
+        public static void LogException(System.Exception e)
+        {
+            Debug.LogException(e);
         }
     }
 }

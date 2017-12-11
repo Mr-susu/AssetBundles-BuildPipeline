@@ -67,8 +67,9 @@ namespace UnityEditor.Build
                     if (result < 0)
                         return result;
                 }
-                catch
+                catch (System.Exception e)
                 {
+                    BuildLogger.LogException(e);
                     return BuildPipelineCodes.Exception;
                 }
             }
