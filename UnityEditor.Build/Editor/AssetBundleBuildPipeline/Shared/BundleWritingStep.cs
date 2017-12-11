@@ -20,7 +20,7 @@ namespace UnityEditor.Build.AssetBundle.Shared
 
             // Archive and compress resource files
             var resourceArchiver = new ResourceFileArchiver(useCache, progressTracker);
-            exitCode = resourceArchiver.Convert(result, compression, outputFolder, out result.bundleCRCs);
+            exitCode = resourceArchiver.Convert(result, compression, outputFolder, out result.bundleInfos);
             if (exitCode < BuildPipelineCodes.Success)
                 return exitCode;
 

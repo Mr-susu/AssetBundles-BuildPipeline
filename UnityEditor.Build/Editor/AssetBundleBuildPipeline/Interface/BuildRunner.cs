@@ -33,6 +33,13 @@ namespace UnityEditor.Build
         BuildPipelineCodes Run(I1 input1, I2 input2, O1 output);
     }
 
+    public interface IBuildTask<I1, I2, I3, O1>
+    {
+        int Version { get; }
+
+        BuildPipelineCodes Run(I1 input1, I2 input2, I3 input3, O1 output);
+    }
+
     public class BuildRunner
     {
         private List<IBuildTask> m_Tasks = new List<IBuildTask>();
@@ -92,7 +99,8 @@ namespace UnityEditor.Build
             // Writing
             runner.AddTask(new WriteAssetBundles());
             runner.AddTask(new WriteSceneBundles());
-
+            runner.AddTask(new ArchiveAndCompressBundles());
+            runner.AddTask(new PostWritingCallback());
             return runner;
         }
     }

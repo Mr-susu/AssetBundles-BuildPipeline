@@ -22,6 +22,11 @@ namespace UnityEditor.Build
         Func<IBuildParams, IDependencyInfo, IWriteInfo, BuildPipelineCodes> PostPackingCallback { get; }
     }
 
+    public interface IWritingCallback
+    {
+        Func<IBuildParams, IDependencyInfo, IWriteInfo, IResultInfo, BuildPipelineCodes> PostWritingCallback { get; }
+    }
+
     public interface IDependencyInfo
     {
         Dictionary<GUID, AssetLoadInfo> AssetInfo { get; }
@@ -41,36 +46,37 @@ namespace UnityEditor.Build
 
     public interface IResultInfo
     {
-        Dictionary<string, uint> BundleCRCs { get; }
+        Dictionary<string, BundleInfo> BundleInfos { get; }
         Dictionary<string, List<WriteResult>> BundleResults { get; }
     }
 
-    public class BuildContext : IBundlesInput, IDependencyInfo, IWriteInfo, IResultInfo, IDependencyCallback, IPackingCallback
+    public class BuildContext : IBundlesInput, IDependencyInfo, IWriteInfo, IResultInfo, IDependencyCallback, IPackingCallback, IWritingCallback
     {
         public BuildInput BundleInput { get; set; }
 
-        public Dictionary<GUID, AssetLoadInfo> AssetInfo { get { return dependencyData.assetInfo; } }
-        public Dictionary<GUID, SceneDependencyInfo> SceneInfo { get { return dependencyData.sceneInfo; } }
-        public Dictionary<GUID, string> SceneAddress { get { return dependencyData.sceneAddress; } }
-        public Dictionary<GUID, BuildUsageTagSet> SceneUsage { get { return dependencyData.sceneUsageTags; } }
+        public Dictionary<GUID, AssetLoadInfo> AssetInfo { get { return m_DependencyData.assetInfo; } }
+        public Dictionary<GUID, SceneDependencyInfo> SceneInfo { get { return m_DependencyData.sceneInfo; } }
+        public Dictionary<GUID, string> SceneAddress { get { return m_DependencyData.sceneAddress; } }
+        public Dictionary<GUID, BuildUsageTagSet> SceneUsage { get { return m_DependencyData.sceneUsageTags; } }
         public BuildUsageTagGlobal GlobalUsage
         {
-            get { return dependencyData.buildGlobalUsage; }
-            set { dependencyData.buildGlobalUsage = value; }
+            get { return m_DependencyData.buildGlobalUsage; }
+            set { m_DependencyData.buildGlobalUsage = value; }
         }
-        public Dictionary<GUID, List<string>> AssetToBundles { get { return dependencyData.assetToBundles; } }
-        public Dictionary<string, List<GUID>> BundleToAssets { get { return dependencyData.bundleToAssets; } }
-        public Dictionary<string, IWriteOperation> AssetBundles { get { return writeInfo.assetBundles; } }
-        public Dictionary<string, List<IWriteOperation>> SceneBundles { get { return writeInfo.sceneBundles; } }
-        public Dictionary<string, uint> BundleCRCs { get { return resultInfo.bundleCRCs; } }
-        public Dictionary<string, List<WriteResult>> BundleResults { get { return resultInfo.bundleResults; } }
+        public Dictionary<GUID, List<string>> AssetToBundles { get { return m_DependencyData.assetToBundles; } }
+        public Dictionary<string, List<GUID>> BundleToAssets { get { return m_DependencyData.bundleToAssets; } }
+        public Dictionary<string, IWriteOperation> AssetBundles { get { return m_WriteInfo.assetBundles; } }
+        public Dictionary<string, List<IWriteOperation>> SceneBundles { get { return m_WriteInfo.sceneBundles; } }
+        public Dictionary<string, BundleInfo> BundleInfos { get { return m_ResultInfo.bundleInfos; } }
+        public Dictionary<string, List<WriteResult>> BundleResults { get { return m_ResultInfo.bundleResults; } }
 
         public Func<IBuildParams, IDependencyInfo, BuildPipelineCodes> PostDependencyCallback { get; set; }
         public Func<IBuildParams, IDependencyInfo, IWriteInfo, BuildPipelineCodes> PostPackingCallback { get; set; }
+        public Func<IBuildParams, IDependencyInfo, IWriteInfo, IResultInfo, BuildPipelineCodes> PostWritingCallback { get; set; }
 
         // TODO: Replace these classes maybe?
-        private BuildDependencyInfo dependencyData = new BuildDependencyInfo();
-        private BuildWriteInfo writeInfo = new BuildWriteInfo();
-        private BuildResultInfo resultInfo = new BuildResultInfo();
+        private BuildDependencyInfo m_DependencyData = new BuildDependencyInfo();
+        private BuildWriteInfo m_WriteInfo = new BuildWriteInfo();
+        private BuildResultInfo m_ResultInfo = new BuildResultInfo();
     }
 }

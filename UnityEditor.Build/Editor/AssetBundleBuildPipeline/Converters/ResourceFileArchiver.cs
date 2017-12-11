@@ -4,12 +4,12 @@ using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
-using BundleCRCMap = System.Collections.Generic.Dictionary<string, uint>;
+using BundleInfoMap = System.Collections.Generic.Dictionary<string, UnityEditor.Build.AssetBundle.BundleInfo>;
 using System.Linq;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
-    public class ResourceFileArchiver : ADataConverter<BuildResultInfo, BuildCompression, string, BundleCRCMap>
+    public class ResourceFileArchiver : ADataConverter<BuildResultInfo, BuildCompression, string, BundleInfoMap>
     {
         public override uint Version { get { return 1; } }
 
@@ -26,10 +26,10 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return HashingMethods.CalculateMD5Hash(Version, fileHashes, compression);
         }
 
-        public override BuildPipelineCodes Convert(BuildResultInfo resultInfo, BuildCompression compression, string outputFolder, out BundleCRCMap output)
+        public override BuildPipelineCodes Convert(BuildResultInfo resultInfo, BuildCompression compression, string outputFolder, out BundleInfoMap output)
         {
             StartProgressBar("Archiving Resource Files", resultInfo.bundleResults.Count);
-            output = new BundleCRCMap();
+            output = new BundleInfoMap();
 
             foreach (var bundle in resultInfo.bundleResults)
             {
@@ -43,18 +43,19 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
 
                 var filePath = string.Format("{0}/{1}", outputFolder, bundle.Key);
 
-                uint crc;
+                BundleInfo bundleInfo;
                 Hash128 hash = CalculateInputHash(resourceFiles, compression);
-                if (UseCache && TryLoadFromCache(hash, outputFolder, out crc))
+                if (UseCache && TryLoadFromCache(hash, outputFolder, out bundleInfo))
                 {
-                    output[filePath] = crc;
+                    output[filePath] = bundleInfo;
                     continue;
                 }
 
-                crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles.ToArray(), filePath, compression);
-                output[filePath] = crc;
+                bundleInfo.crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles.ToArray(), filePath, compression);
+                bundleInfo.hash = HashingMethods.CalculateFileMD5Hash(filePath);
+                output[filePath] = bundleInfo;
 
-                if (UseCache && !TrySaveToCache(hash, bundle.Key, crc, outputFolder))
+                if (UseCache && !TrySaveToCache(hash, bundle.Key, bundleInfo, outputFolder))
                     BuildLogger.LogWarning("Unable to cache ResourceFileArchiver result for bundle {0}.", bundle.Key);
             }
 
@@ -63,7 +64,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return BuildPipelineCodes.Success;
         }
 
-        private bool TryLoadFromCache(Hash128 hash, string outputFolder, out uint output)
+        private bool TryLoadFromCache(Hash128 hash, string outputFolder, out BundleInfo output)
         {
             string rootCachePath;
             string[] artifactPaths;
@@ -78,7 +79,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return true;
         }
 
-        private bool TrySaveToCache(Hash128 hash, string filePath, uint output, string outputFolder)
+        private bool TrySaveToCache(Hash128 hash, string filePath, BundleInfo output, string outputFolder)
         {
             return BuildCache.SaveCachedResultsAndArtifacts(hash, output, new[] { filePath }, outputFolder);
         }
