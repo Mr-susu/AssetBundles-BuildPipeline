@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using UnityEditor.Build.AssetBundle.DataConverters;
-using UnityEditor.Build.AssetBundle.DataTypes;
+﻿using UnityEditor.Build.AssetBundle.DataConverters;
 using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build.AssetBundle.Shared

@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using UnityEngine;
-
-namespace UnityEditor.Build.Utilities
+﻿namespace UnityEditor.Build.Utilities
 {
     public interface IProgressTracker
     {

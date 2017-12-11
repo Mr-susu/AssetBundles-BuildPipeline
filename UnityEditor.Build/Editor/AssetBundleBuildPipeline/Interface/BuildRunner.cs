@@ -91,6 +91,7 @@ namespace UnityEditor.Build
             runner.AddTask(new PostPackingCallback());
             // Writing
             runner.AddTask(new WriteAssetBundles());
+            runner.AddTask(new WriteSceneBundles());
 
             return runner;
         }

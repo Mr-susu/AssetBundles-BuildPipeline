@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.IO;
 using UnityEditor.Build.AssetBundle.DataConverters;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.Player;

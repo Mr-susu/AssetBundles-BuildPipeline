@@ -1,11 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using NUnit.Framework;
 using UnityEditor.Build.AssetBundle;
 using UnityEditor.Build.AssetBundle.DataConverters;
-using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
-using UnityEngine;
 
 namespace UnityEditor.Build.Tests
 {

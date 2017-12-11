@@ -1,6 +1,4 @@
-﻿using UnityEditor.Sprites;
-
-namespace UnityEditor.Build
+﻿namespace UnityEditor.Build
 {
     public class SwitchToBuildPlatform : IBuildTask<object, object>, IBuildTask
     {

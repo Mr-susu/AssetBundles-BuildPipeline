@@ -8,13 +8,13 @@ using UnityEngine;
 
 namespace UnityEditor.Build
 {
-    public class WriteAssetBundles : WriteFileBase
+    public class WriteSceneBundles : WriteFileBase
     {
         protected override Hash128 CalculateInputHash(IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
             if (!BuildParams.UseCache)
                 return new Hash128();
-            
+
             var hashes = new List<Hash128>();
             var visitedAssets = new HashSet<GUID>();
             var objectIDs = operation.command.serializeObjects.Select(x => x.serializationObject);
@@ -22,13 +22,17 @@ namespace UnityEditor.Build
             {
                 if (objectID.fileType != FileType.MetaAssetType && objectID.fileType != FileType.SerializedAssetType)
                     continue;
-                
+
                 if (!visitedAssets.Add(objectID.guid))
                     continue;
 
                 var path = AssetDatabase.GUIDToAssetPath(objectID.guid.ToString());
                 hashes.Add(AssetDatabase.GetAssetDependencyHash(path));
             }
+
+            var op = operation as SceneDataWriteOperation;
+            if (op != null)
+                hashes.Add(HashingMethods.CalculateFileMD5Hash(op.processedScene));
 
             return HashingMethods.CalculateMD5Hash(Version, operation, hashes, dependencies, globalUsage, buildUsage, BuildParams.Settings);
         }
@@ -38,8 +42,11 @@ namespace UnityEditor.Build
             var allCommands = new List<WriteCommand>(input2.AssetBundles.Select(x => x.Value.command));
             allCommands.AddRange(input2.SceneBundles.SelectMany(x => x.Value.Select(y => y.command)));
 
-            foreach (var bundle in input2.AssetBundles)
-                WriteSerialziedFiles(bundle.Key, bundle.Value, allCommands, input1.GlobalUsage, output);
+            foreach (var bundle in input2.SceneBundles)
+            {
+                foreach (var op in bundle.Value)
+                    WriteSerialziedFiles(bundle.Key, op, allCommands, input1.GlobalUsage, output);
+            }
 
             return BuildPipelineCodes.Success;
         }

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using UnityEditor.Build.AssetBundle.DataTypes;
 using UnityEditor.Build.AssetBundle.Shared;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;

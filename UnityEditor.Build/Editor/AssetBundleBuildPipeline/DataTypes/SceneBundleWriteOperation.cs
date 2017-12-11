@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 

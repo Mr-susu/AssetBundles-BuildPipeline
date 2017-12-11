@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
@@ -71,7 +70,7 @@ namespace UnityEditor.Build
                 sceneInfo = BundleBuildInterface.PrepareScene(scenePath, BuildParams.Settings, usageTags, BuildParams.GetTempOrCacheBuildPath(hash));
                 SetOutputInformation(assetID, sceneInfo, usageTags, output);
 
-                if (TrySaveToCache(hash, sceneInfo, usageTags))
+                if (!TrySaveToCache(hash, sceneInfo, usageTags))
                     BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", assetID.asset);
             }
 
@@ -106,8 +105,8 @@ namespace UnityEditor.Build
         protected bool TrySaveToCache(Hash128 hash, SceneDependencyInfo sceneInfo, BuildUsageTagSet usageTags)
         {
             if (BuildParams.UseCache && !BuildCache.SaveCachedResults(hash, sceneInfo) && !BuildCache.SaveCachedResults(hash, usageTags))
-                return true;
-            return false;
+                return false;
+            return true;
         }
     }
 }
