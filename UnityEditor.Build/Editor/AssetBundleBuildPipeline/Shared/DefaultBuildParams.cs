@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;

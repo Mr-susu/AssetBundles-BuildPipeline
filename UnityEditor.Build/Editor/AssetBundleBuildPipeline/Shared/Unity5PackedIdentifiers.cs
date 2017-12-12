@@ -1,15 +1,17 @@
 using System;
 using System.Text;
+using UnityEditor.Build.Interfaces;
+using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build.Utilities
+namespace UnityEditor.Build
 {
     class Unity5PackedIdentifiers : IDeterministicIdentifiers
     {
         public string GenerateInternalFileName(string name)
         {
             var md4 = MD4.Create();
-            var bytes = Encoding.ASCII.GetBytes(name);
+            byte[] bytes = Encoding.ASCII.GetBytes(name);
             md4.TransformFinalBlock(bytes, 0, bytes.Length);
             return "CAB-" + BitConverter.ToString(md4.Hash, 0).ToLower().Replace("-", "");
         }
@@ -36,7 +38,7 @@ namespace UnityEditor.Build.Utilities
 
             bytes = BitConverter.GetBytes(objectID.localIdentifierInFile);
             md4.TransformFinalBlock(bytes, 0, bytes.Length);
-            var hash = BitConverter.ToInt64(md4.Hash, 0);
+            long hash = BitConverter.ToInt64(md4.Hash, 0);
             return hash;
         }
     }

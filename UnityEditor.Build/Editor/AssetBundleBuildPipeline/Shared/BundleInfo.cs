@@ -1,7 +1,7 @@
 ﻿using System;
 using UnityEngine;
 
-namespace UnityEditor.Build.AssetBundle
+namespace UnityEditor.Build
 {
     [Serializable]
     public struct BundleInfo

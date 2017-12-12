@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
@@ -14,7 +15,7 @@ namespace UnityEditor.Build
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            foreach (var task in m_Tasks)
+            foreach (IBuildTask task in m_Tasks)
             {
                 try
                 {

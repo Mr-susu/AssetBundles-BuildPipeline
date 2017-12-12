@@ -1,4 +1,5 @@
 using System;
+using UnityEditor.Build.Tasks;
 using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
@@ -20,7 +21,6 @@ namespace UnityEditor.Build
             // Packing
             runner.AddTask(new ValidateBundleAssignments());
             runner.AddTask(new StripUnusedSpriteSources());
-            var packer = new Unity5PackedIdentifiers();
             runner.AddTask(new GenerateWriteCommands()); // TODO: maybe split up the generator per command type (Scene, bundle, raw, etc)
             runner.AddTask(new PostPackingCallback());
             // Writing

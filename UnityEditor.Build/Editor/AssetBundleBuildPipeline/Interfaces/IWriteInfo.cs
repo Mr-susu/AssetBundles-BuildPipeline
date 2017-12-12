@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEditor.Build.AssetBundle.DataTypes;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Interfaces
 {
     public interface IWriteInfo : IContextObject
     {

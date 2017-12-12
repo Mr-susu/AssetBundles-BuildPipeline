@@ -1,6 +1,7 @@
-﻿using UnityEditor.Sprites;
+﻿using UnityEditor.Build.Interfaces;
+using UnityEditor.Sprites;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public class RebuildAtlasCache : IBuildTask
     {

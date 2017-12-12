@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.Build
+﻿using UnityEditor.Build.Interfaces;
+
+namespace UnityEditor.Build.Tasks
 {
     public class SwitchToBuildPlatform : IBuildTask
     {

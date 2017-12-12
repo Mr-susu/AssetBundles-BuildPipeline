@@ -1,9 +1,8 @@
-﻿using System;
-using UnityEditor.Build.Utilities;
+﻿using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Interfaces
 {
     public interface IBuildParams : IContextObject
     {

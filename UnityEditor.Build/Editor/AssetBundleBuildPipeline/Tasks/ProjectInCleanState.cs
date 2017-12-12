@@ -1,6 +1,7 @@
-﻿using UnityEditor.Build.Utilities;
+﻿using UnityEditor.Build.Interfaces;
+using UnityEditor.Build.Utilities;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public class ProjectInCleanState : IBuildTask
     {

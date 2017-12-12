@@ -2,7 +2,7 @@
 using UnityEditor.Build.AssetBundle;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Interfaces
 {
     public interface IResultInfo : IContextObject
     {

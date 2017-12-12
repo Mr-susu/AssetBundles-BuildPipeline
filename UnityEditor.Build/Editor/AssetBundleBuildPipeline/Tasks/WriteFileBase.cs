@@ -1,12 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.AssetBundle.DataTypes;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public abstract class WriteFileBase : IBuildTask
     {

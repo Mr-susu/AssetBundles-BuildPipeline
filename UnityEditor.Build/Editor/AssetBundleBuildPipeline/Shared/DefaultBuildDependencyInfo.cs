@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build.AssetBundle
+namespace UnityEditor.Build
 {
     [Serializable]
     public class DefaultBuildDependencyInfo : IDependencyInfo

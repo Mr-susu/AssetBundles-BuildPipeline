@@ -1,4 +1,5 @@
-﻿using UnityEditor.Experimental.Build.AssetBundle;
+﻿using UnityEditor.Build.Interfaces;
+using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build
 {

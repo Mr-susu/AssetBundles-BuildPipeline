@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public class CalculateAssetDependencyData : IBuildTask
     {

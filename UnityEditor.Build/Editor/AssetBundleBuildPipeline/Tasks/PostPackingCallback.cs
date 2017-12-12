@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.Build
+﻿using UnityEditor.Build.Interfaces;
+
+namespace UnityEditor.Build.Tasks
 {
     public class PostPackingCallback : IBuildTask
     {
@@ -13,7 +15,7 @@
 
         public BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IPackingCallback output)
         {
-            return output.PostPackingCallback(buildParams, input1, input2);
+            return output.PostPacking(buildParams, input1, input2);
         }
     }
 }

@@ -60,10 +60,7 @@ namespace UnityEditor.Build.AssetBundle
                     var buildInput = new DefaultBundleInput(input);
                     var buildParams = new DefaultBuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
 
-                    var buildContext = new DefaultBuildContext(buildInput, buildParams);
-                    buildContext.SetContextObject<IDependencyCallback>(BuildCallbacks);
-                    buildContext.SetContextObject<IPackingCallback>(BuildCallbacks);
-                    buildContext.SetContextObject<IWritingCallback>(BuildCallbacks);
+                    var buildContext = new DefaultBuildContext(buildInput, buildParams, BuildCallbacks, BuildCallbacks, BuildCallbacks);
 
                     var buildRunner = DefaultBuildPipeline.Create();
                     exitCode = buildRunner.Run(buildContext);

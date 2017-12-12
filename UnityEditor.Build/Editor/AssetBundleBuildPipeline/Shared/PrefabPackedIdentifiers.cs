@@ -1,8 +1,10 @@
 ﻿using System;
+using UnityEditor.Build.Interfaces;
+using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
-namespace UnityEditor.Build.Utilities
+namespace UnityEditor.Build
 {
     class PrefabPackedIdentifiers : IDeterministicIdentifiers
     {

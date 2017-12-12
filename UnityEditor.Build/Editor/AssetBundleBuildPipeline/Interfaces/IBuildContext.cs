@@ -1,22 +1,20 @@
-﻿using System;
-
-namespace UnityEditor.Build
+﻿namespace UnityEditor.Build.Interfaces
 {
     public interface IContextObject { }
 
     public interface IDependencyCallback : IContextObject
     {
-        Func<IBuildParams, IDependencyInfo, BuildPipelineCodes> PostDependencyCallback { get; }
+        BuildPipelineCodes PostDependency(IBuildParams buildParams, IDependencyInfo dependencyInfo);
     }
 
     public interface IPackingCallback : IContextObject
     {
-        Func<IBuildParams, IDependencyInfo, IWriteInfo, BuildPipelineCodes> PostPackingCallback { get; }
+        BuildPipelineCodes PostPacking(IBuildParams buildParams, IDependencyInfo dependencyInfo, IWriteInfo writeInfo);
     }
 
     public interface IWritingCallback : IContextObject
     {
-        Func<IBuildParams, IDependencyInfo, IWriteInfo, IResultInfo, BuildPipelineCodes> PostWritingCallback { get; }
+        BuildPipelineCodes PostWriting(IBuildParams buildParams, IDependencyInfo dependencyInfo, IWriteInfo writeInfo, IResultInfo resultInfo);
     }
 
     public interface IBuildContext

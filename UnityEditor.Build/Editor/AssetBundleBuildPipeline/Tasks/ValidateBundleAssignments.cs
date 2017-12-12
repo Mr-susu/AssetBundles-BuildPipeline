@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public class ValidateBundleAssignments : IBuildTask
     {

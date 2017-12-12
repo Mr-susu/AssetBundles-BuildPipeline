@@ -1,8 +1,9 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build
+namespace UnityEditor.Build.Tasks
 {
     public class CalculateBundleLookups : IBuildTask
     {

@@ -1,4 +1,6 @@
-﻿namespace UnityEditor.Build
+﻿using UnityEditor.Build.Interfaces;
+
+namespace UnityEditor.Build.Tasks
 {
     public class PostDependencyCallback : IBuildTask
     {
@@ -13,7 +15,7 @@
 
         public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input, IDependencyCallback output)
         {
-            return output.PostDependencyCallback(buildParams, input);
+            return output.PostDependency(buildParams, input);
         }
     }
 }

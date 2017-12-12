@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEditor.Build.AssetBundle.DataTypes;
+using UnityEditor.Build.Interfaces;
 
-namespace UnityEditor.Build.AssetBundle
+namespace UnityEditor.Build
 {
     [Serializable]
     public class DefaultBuildWriteInfo : IWriteInfo
