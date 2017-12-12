@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Experimental.Build.AssetBundle;
-using UnityEngine;
 
 namespace UnityEditor.Build
 {

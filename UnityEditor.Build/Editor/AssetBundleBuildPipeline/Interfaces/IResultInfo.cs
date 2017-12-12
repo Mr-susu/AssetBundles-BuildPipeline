@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Build.AssetBundle;
 using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.Interfaces

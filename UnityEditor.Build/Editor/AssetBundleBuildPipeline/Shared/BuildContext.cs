@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEditor.Build.AssetBundle;
 using UnityEditor.Build.Interfaces;
-using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
