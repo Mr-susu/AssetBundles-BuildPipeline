@@ -12,14 +12,14 @@ namespace UnityEditor.Build.AssetBundle
 
         public const string kDefaultOutputPath = "AssetBundles";
 
-        public static DefaultBuildCallbacks BuildCallbacks = new DefaultBuildCallbacks();
+        public static BuildCallbacks buildCallbacks = new BuildCallbacks();
 
 
         public static BuildSettings GenerateBundleBuildSettings(TypeDB typeDB)
         {
             var settings = new BuildSettings();
             settings.target = EditorUserBuildSettings.activeBuildTarget;
-            settings.group = BuildPipeline.GetBuildTargetGroup(settings.target);
+            settings.group = UnityEditor.BuildPipeline.GetBuildTargetGroup(settings.target);
             settings.typeDB = typeDB;
             return settings;
         }
@@ -28,7 +28,7 @@ namespace UnityEditor.Build.AssetBundle
         {
             var settings = new BuildSettings();
             settings.target = target;
-            settings.group = BuildPipeline.GetBuildTargetGroup(settings.target);
+            settings.group = UnityEditor.BuildPipeline.GetBuildTargetGroup(settings.target);
             settings.typeDB = typeDB;
             return settings;
         }
@@ -43,13 +43,13 @@ namespace UnityEditor.Build.AssetBundle
             return settings;
         }
 
-        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out DefaultBuildResultInfo result, object callbackUserData = null, bool useCache = true)
+        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out BuildResultInfo result, object callbackUserData = null, bool useCache = true)
         {
             var buildTimer = new Stopwatch();
             buildTimer.Start();
 
             var exitCode = BuildPipelineCodes.Success;
-            result = new DefaultBuildResultInfo();
+            result = new BuildResultInfo();
 
             AssetDatabase.SaveAssets();
 
@@ -57,12 +57,12 @@ namespace UnityEditor.Build.AssetBundle
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
-                    var buildInput = new DefaultBundleInput(input);
-                    var buildParams = new DefaultBuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
+                    var buildInput = new BuildLayout(input);
+                    var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
 
-                    var buildContext = new DefaultBuildContext(buildInput, buildParams, BuildCallbacks, BuildCallbacks, BuildCallbacks);
+                    var buildContext = new BuildContext(buildInput, buildParams, buildCallbacks, buildCallbacks, buildCallbacks);
 
-                    var buildRunner = DefaultBuildPipeline.Create();
+                    var buildRunner = BuildPipeline.Create();
                     exitCode = buildRunner.Run(buildContext);
                 }
             }

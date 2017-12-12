@@ -7,12 +7,12 @@ using UnityEngine;
 namespace UnityEditor.Build
 {
     [Serializable]
-    public class DefaultBuildResultInfo : IResultInfo
+    public class BuildResultInfo : IResultInfo
     {
         public Dictionary<string, BundleInfo> BundleInfos { get; private set; }
         public Dictionary<string, List<WriteResult>> BundleResults { get; private set; }
 
-        public DefaultBuildResultInfo()
+        public BuildResultInfo()
         {
             BundleInfos = new Dictionary<string, BundleInfo>();
             BundleResults = new Dictionary<string, List<WriteResult>>();

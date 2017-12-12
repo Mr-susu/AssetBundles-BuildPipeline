@@ -2,8 +2,8 @@
 
 namespace UnityEditor.Build.Interfaces
 {
-    public interface IBundleInput : IContextObject
+    public interface IBuildLayout : IContextObject
     {
-        BuildInput BundleInput { get; }
+        BuildInput Layout { get; }
     }
 }

@@ -6,13 +6,13 @@ using UnityEngine;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
-    public class SharedObjectProcessor : ADataConverter<DefaultBuildDependencyInfo, BuildSettings, bool, DefaultBuildDependencyInfo>
+    public class SharedObjectProcessor : ADataConverter<BuildDependencyInfo, BuildSettings, bool, BuildDependencyInfo>
     {
         public override uint Version { get { return 1; } }
 
         public SharedObjectProcessor(bool useCache, IProgressTracker progressTracker) : base(useCache, progressTracker) { }
 
-        private Hash128 CalculateInputHash(DefaultBuildDependencyInfo input)
+        private Hash128 CalculateInputHash(BuildDependencyInfo input)
         {
             if (!UseCache)
                 return new Hash128();
@@ -20,7 +20,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return HashingMethods.CalculateMD5Hash(Version, input);
         }
 
-        public override BuildPipelineCodes Convert(DefaultBuildDependencyInfo input, BuildSettings settings, bool aggressive, out DefaultBuildDependencyInfo output)
+        public override BuildPipelineCodes Convert(BuildDependencyInfo input, BuildSettings settings, bool aggressive, out BuildDependencyInfo output)
         {
             StartProgressBar("Generated shared object bundles", 3);
 

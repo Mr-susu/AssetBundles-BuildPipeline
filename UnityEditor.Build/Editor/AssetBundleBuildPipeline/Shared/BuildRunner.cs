@@ -4,7 +4,7 @@ using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
-    public class DefaultBuildRunner
+    public class BuildRunner
     {
         protected List<IBuildTask> m_Tasks = new List<IBuildTask>();
 

@@ -4,11 +4,11 @@ using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
-    public static class DefaultBuildPipeline
+    public static class BuildPipeline
     {
-        public static DefaultBuildRunner Create()
+        public static BuildRunner Create()
         {
-            var runner = new DefaultBuildRunner();
+            var runner = new BuildRunner();
             // Setup
             runner.AddTask(new ProjectInCleanState());
             runner.AddTask(new SwitchToBuildPlatform());

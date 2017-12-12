@@ -12,12 +12,12 @@ namespace UnityEditor.Build.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBundleInput>(), context.GetContextObject<IDependencyInfo>());
+            return Run(context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>());
         }
 
-        public BuildPipelineCodes Run(IBundleInput input, IDependencyInfo output)
+        public BuildPipelineCodes Run(IBuildLayout input, IDependencyInfo output)
         {
-            foreach (BuildInput.Definition bundle in input.BundleInput.definitions)
+            foreach (BuildInput.Definition bundle in input.Layout.definitions)
             {
                 foreach (AssetIdentifier assetID in bundle.explicitAssets)
                 {

@@ -15,7 +15,7 @@ namespace UnityEditor.Build.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBundleInput>(), context.GetContextObject<IDependencyInfo>());
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>());
         }
 
         protected static bool ValidAsset(GUID asset)
@@ -40,9 +40,9 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IBundleInput input, IDependencyInfo output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
         {
-            List<AssetIdentifier> assetIDs = input.BundleInput.definitions.SelectMany(x => x.explicitAssets).Where(x => ValidAsset(x.asset)).ToList();
+            List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ValidAsset(x.asset)).ToList();
             if (buildParams.ProgressTracker != null) // can't use null propagation
                 buildParams.ProgressTracker.StartStep("Processing Asset Dependencies", assetIDs.Count());
 
@@ -84,7 +84,7 @@ namespace UnityEditor.Build.Tasks
 
         protected static void SetOutputInformation(AssetIdentifier assetID, AssetLoadInfo assetInfo, IDependencyInfo output)
         {
-            // Add generated asset information to DefaultBuildDependencyInfo
+            // Add generated asset information to BuildDependencyInfo
             output.AssetInfo.Add(assetID.asset, assetInfo);
         }
 

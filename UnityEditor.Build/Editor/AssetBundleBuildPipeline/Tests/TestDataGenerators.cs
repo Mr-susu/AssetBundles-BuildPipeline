@@ -75,14 +75,14 @@ namespace UnityEditor.Build.Tests
 
         // Generates example data layout of 2 Prefabs both referencing the Mesh of an FBX
         // Each Prefab and Mesh is located in a separate bundle
-        public static DefaultBuildDependencyInfo CreateAssetsWithFBXMeshReference(bool includeFbxInBundle)
+        public static BuildDependencyInfo CreateAssetsWithFBXMeshReference(bool includeFbxInBundle)
         {
             var prefab1 = new GUID("00000000000000000000000000000001");
             var prefab2 = new GUID("00000000000000000000000000000002");
             var fbx = new GUID("00000000000000000000000000000010");
             var fbxInfo = CreateFBXWithMesh(fbx);
 
-            var buildInfo = new DefaultBuildDependencyInfo();
+            var buildInfo = new BuildDependencyInfo();
             buildInfo.AssetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, fbxInfo.includedObjects[5]));
             buildInfo.AssetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, fbxInfo.includedObjects[5]));
             if (includeFbxInBundle)
@@ -123,7 +123,7 @@ namespace UnityEditor.Build.Tests
 
         // Generates example data layout of 3 Prefabs referencing 2 materials with 1 shader
         // Each Prefab and Mesh is located in a separate bundle
-        public static DefaultBuildDependencyInfo CreateAssetsWithMaterialReference()
+        public static BuildDependencyInfo CreateAssetsWithMaterialReference()
         {
             var prefab1 = new GUID("00000000000000000000000000000001");
             var prefab2 = new GUID("00000000000000000000000000000002");
@@ -132,7 +132,7 @@ namespace UnityEditor.Build.Tests
             var material2 = ConstructObjectIdentifier(new GUID("00000000000000000000000000000020"), 2100000, FileType.MetaAssetType, ""); // Material
             var shader = ConstructObjectIdentifier(new GUID("00000000000000000000000000000100"), 6, FileType.NonAssetType, "resources/unity_builtin_extra"); // Shader
 
-            var buildInfo = new DefaultBuildDependencyInfo();
+            var buildInfo = new BuildDependencyInfo();
             buildInfo.AssetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, material1, shader));
             buildInfo.AssetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, material2, shader));
             buildInfo.AssetInfo.Add(prefab3, CreatePrefabWithReferences(prefab3, material1, shader));

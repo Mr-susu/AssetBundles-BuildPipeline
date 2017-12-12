@@ -7,7 +7,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 namespace UnityEditor.Build
 {
     [Serializable]
-    public class DefaultBuildDependencyInfo : IDependencyInfo
+    public class BuildDependencyInfo : IDependencyInfo
     {
         public Dictionary<GUID, AssetLoadInfo> AssetInfo { get; private set; }
         public Dictionary<GUID, SceneDependencyInfo> SceneInfo { get; private set; }
@@ -22,7 +22,7 @@ namespace UnityEditor.Build
         public HashSet<GUID> virtualAssets = new HashSet<GUID>();
         public Dictionary<ObjectIdentifier, GUID> objectToVirtualAsset = new Dictionary<ObjectIdentifier, GUID>();
 
-        public DefaultBuildDependencyInfo()
+        public BuildDependencyInfo()
         {
             AssetInfo = new Dictionary<GUID, AssetLoadInfo>();
             SceneInfo = new Dictionary<GUID, SceneDependencyInfo>();

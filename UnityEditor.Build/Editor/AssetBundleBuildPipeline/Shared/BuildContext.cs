@@ -6,37 +6,37 @@ using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
-    public class DefaultBuildContext : IBuildContext
+    public class BuildContext : IBuildContext
     {
         Dictionary<Type, IContextObject> m_ContextObjects;
 
-        public DefaultBuildContext(IBundleInput bundleInput, IBuildParams buildParams)
+        public BuildContext(IBuildLayout buildLayout, IBuildParams buildParams)
         {
             m_ContextObjects = new Dictionary<Type, IContextObject>();
-            SetContextObject<IBundleInput>(bundleInput);
+            SetContextObject<IBuildLayout>(buildLayout);
             SetContextObject<IBuildParams>(buildParams);
 
-            SetContextObject<IDependencyInfo>(new DefaultBuildDependencyInfo());
-            SetContextObject<IWriteInfo>(new DefaultBuildWriteInfo());
-            SetContextObject<IResultInfo>(new DefaultBuildResultInfo());
+            SetContextObject<IDependencyInfo>(new BuildDependencyInfo());
+            SetContextObject<IWriteInfo>(new BuildWriteInfo());
+            SetContextObject<IResultInfo>(new BuildResultInfo());
 
             SetContextObject<IDeterministicIdentifiers>(new Unity5PackedIdentifiers());
 
-            var callbacks = new DefaultBuildCallbacks();
+            var callbacks = new BuildCallbacks();
             SetContextObject<IDependencyCallback>(callbacks);
             SetContextObject<IPackingCallback>(callbacks);
             SetContextObject<IWritingCallback>(callbacks);
         }
 
-        public DefaultBuildContext(IBundleInput bundleInput, IBuildParams buildParams, IDependencyCallback dependencyCallback, IPackingCallback packingCallback, IWritingCallback writingCallback)
+        public BuildContext(IBuildLayout buildLayout, IBuildParams buildParams, IDependencyCallback dependencyCallback, IPackingCallback packingCallback, IWritingCallback writingCallback)
         {
             m_ContextObjects = new Dictionary<Type, IContextObject>();
-            SetContextObject<IBundleInput>(bundleInput);
+            SetContextObject<IBuildLayout>(buildLayout);
             SetContextObject<IBuildParams>(buildParams);
 
-            SetContextObject<IDependencyInfo>(new DefaultBuildDependencyInfo());
-            SetContextObject<IWriteInfo>(new DefaultBuildWriteInfo());
-            SetContextObject<IResultInfo>(new DefaultBuildResultInfo());
+            SetContextObject<IDependencyInfo>(new BuildDependencyInfo());
+            SetContextObject<IWriteInfo>(new BuildWriteInfo());
+            SetContextObject<IResultInfo>(new BuildResultInfo());
 
             SetContextObject<IDeterministicIdentifiers>(new Unity5PackedIdentifiers());
 

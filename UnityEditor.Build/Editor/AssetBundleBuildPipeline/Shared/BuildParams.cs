@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnityEditor.Build
 {
-    public class DefaultBuildParams : IBuildParams
+    public class BuildParams : IBuildParams
     {
         public BuildSettings Settings { get; protected set; }
         public BuildCompression Compression { get; protected set; }
@@ -31,7 +31,7 @@ namespace UnityEditor.Build
         public bool UseCache { get; protected set; }
         public IProgressTracker ProgressTracker { get; protected set; }
 
-        public DefaultBuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
+        public BuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
         {
             Settings = settings;
             Compression = compression;

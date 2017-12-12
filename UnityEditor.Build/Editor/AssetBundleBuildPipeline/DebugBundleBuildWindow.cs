@@ -210,7 +210,7 @@ namespace UnityEditor.Build
             else if (m_Settings.compressionType == CompressionType.Lzma)
                 compression = BuildCompression.DefaultLZMA;
 
-            DefaultBuildResultInfo bundleResult;
+            BuildResultInfo bundleResult;
             errorCode = BundleBuildPipeline.BuildAssetBundles(BundleBuildInterface.GenerateBuildInput(), bundleSettings, compression, m_Settings.outputPath, out bundleResult, null, m_Settings.useBuildCache);
             return errorCode;
         }
@@ -227,7 +227,7 @@ namespace UnityEditor.Build
                 options |= BuildAssetBundleOptions.ForceRebuildAssetBundle;
 
             Directory.CreateDirectory(m_Settings.outputPath);
-            var manifest = BuildPipeline.BuildAssetBundles(m_Settings.outputPath, options, m_Settings.buildTarget);
+            var manifest = UnityEditor.BuildPipeline.BuildAssetBundles(m_Settings.outputPath, options, m_Settings.buildTarget);
             return manifest != null ? BuildPipelineCodes.Success : BuildPipelineCodes.Error;
         }
     }

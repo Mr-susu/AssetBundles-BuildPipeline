@@ -13,7 +13,7 @@ namespace UnityEditor.Build.Player
         {
             var settings = new ScriptCompilationSettings();
             settings.target = EditorUserBuildSettings.activeBuildTarget;
-            settings.group = BuildPipeline.GetBuildTargetGroup(settings.target);
+            settings.group = UnityEditor.BuildPipeline.GetBuildTargetGroup(settings.target);
             settings.options = ScriptCompilationOptions.None;
             return settings;
         }
@@ -22,7 +22,7 @@ namespace UnityEditor.Build.Player
         {
             var settings = new ScriptCompilationSettings();
             settings.target = target;
-            settings.group = BuildPipeline.GetBuildTargetGroup(settings.target);
+            settings.group = UnityEditor.BuildPipeline.GetBuildTargetGroup(settings.target);
             settings.options = ScriptCompilationOptions.None;
             return settings;
         }
