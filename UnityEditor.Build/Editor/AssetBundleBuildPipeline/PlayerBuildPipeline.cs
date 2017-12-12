@@ -63,7 +63,7 @@ namespace UnityEditor.Build.Player
                         return exitCode;
                 }
             }
-            
+
             buildTimer.Stop();
             if (exitCode >= BuildPipelineCodes.Success)
                 BuildLogger.Log("Build Player Scripts successful in: {0:c}", buildTimer.Elapsed);

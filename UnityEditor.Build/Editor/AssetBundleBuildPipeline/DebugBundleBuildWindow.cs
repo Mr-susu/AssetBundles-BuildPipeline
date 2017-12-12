@@ -210,7 +210,7 @@ namespace UnityEditor.Build
             else if (m_Settings.compressionType == CompressionType.Lzma)
                 compression = BuildCompression.DefaultLZMA;
 
-            BuildResultInfo bundleResult;
+            DefaultBuildResultInfo bundleResult;
             errorCode = BundleBuildPipeline.BuildAssetBundles(BundleBuildInterface.GenerateBuildInput(), bundleSettings, compression, m_Settings.outputPath, out bundleResult, null, m_Settings.useBuildCache);
             return errorCode;
         }

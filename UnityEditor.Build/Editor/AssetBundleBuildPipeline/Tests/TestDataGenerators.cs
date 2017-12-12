@@ -75,46 +75,46 @@ namespace UnityEditor.Build.Tests
 
         // Generates example data layout of 2 Prefabs both referencing the Mesh of an FBX
         // Each Prefab and Mesh is located in a separate bundle
-        public static BuildDependencyInfo CreateAssetsWithFBXMeshReference(bool includeFbxInBundle)
+        public static DefaultBuildDependencyInfo CreateAssetsWithFBXMeshReference(bool includeFbxInBundle)
         {
             var prefab1 = new GUID("00000000000000000000000000000001");
             var prefab2 = new GUID("00000000000000000000000000000002");
             var fbx = new GUID("00000000000000000000000000000010");
             var fbxInfo = CreateFBXWithMesh(fbx);
 
-            var buildInfo = new BuildDependencyInfo();
-            buildInfo.assetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, fbxInfo.includedObjects[5]));
-            buildInfo.assetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, fbxInfo.includedObjects[5]));
+            var buildInfo = new DefaultBuildDependencyInfo();
+            buildInfo.AssetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, fbxInfo.includedObjects[5]));
+            buildInfo.AssetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, fbxInfo.includedObjects[5]));
             if (includeFbxInBundle)
-                buildInfo.assetInfo.Add(fbx, fbxInfo);
+                buildInfo.AssetInfo.Add(fbx, fbxInfo);
 
             List<string> assetDependencies;
-            buildInfo.assetToBundles.GetOrAdd(prefab1, out assetDependencies);
+            buildInfo.AssetToBundles.GetOrAdd(prefab1, out assetDependencies);
             assetDependencies.Add(prefab1.ToString());
             if (includeFbxInBundle)
                 assetDependencies.Add(fbx.ToString());
 
-            buildInfo.assetToBundles.GetOrAdd(prefab2, out assetDependencies);
+            buildInfo.AssetToBundles.GetOrAdd(prefab2, out assetDependencies);
             assetDependencies.Add(prefab2.ToString());
             if (includeFbxInBundle)
                 assetDependencies.Add(fbx.ToString());
 
             if (includeFbxInBundle)
             {
-                buildInfo.assetToBundles.GetOrAdd(fbx, out assetDependencies);
+                buildInfo.AssetToBundles.GetOrAdd(fbx, out assetDependencies);
                 assetDependencies.Add(fbx.ToString());
             }
 
             List<GUID> assetsInBundle;
-            buildInfo.bundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
+            buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
             assetsInBundle.Add(prefab1);
 
-            buildInfo.bundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
+            buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
             assetsInBundle.Add(prefab2);
 
             if (includeFbxInBundle)
             {
-                buildInfo.bundleToAssets.GetOrAdd(fbx.ToString(), out assetsInBundle);
+                buildInfo.BundleToAssets.GetOrAdd(fbx.ToString(), out assetsInBundle);
                 assetsInBundle.Add(fbx);
             }
 
@@ -123,7 +123,7 @@ namespace UnityEditor.Build.Tests
 
         // Generates example data layout of 3 Prefabs referencing 2 materials with 1 shader
         // Each Prefab and Mesh is located in a separate bundle
-        public static BuildDependencyInfo CreateAssetsWithMaterialReference()
+        public static DefaultBuildDependencyInfo CreateAssetsWithMaterialReference()
         {
             var prefab1 = new GUID("00000000000000000000000000000001");
             var prefab2 = new GUID("00000000000000000000000000000002");
@@ -132,29 +132,29 @@ namespace UnityEditor.Build.Tests
             var material2 = ConstructObjectIdentifier(new GUID("00000000000000000000000000000020"), 2100000, FileType.MetaAssetType, ""); // Material
             var shader = ConstructObjectIdentifier(new GUID("00000000000000000000000000000100"), 6, FileType.NonAssetType, "resources/unity_builtin_extra"); // Shader
 
-            var buildInfo = new BuildDependencyInfo();
-            buildInfo.assetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, material1, shader));
-            buildInfo.assetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, material2, shader));
-            buildInfo.assetInfo.Add(prefab3, CreatePrefabWithReferences(prefab3, material1, shader));
+            var buildInfo = new DefaultBuildDependencyInfo();
+            buildInfo.AssetInfo.Add(prefab1, CreatePrefabWithReferences(prefab1, material1, shader));
+            buildInfo.AssetInfo.Add(prefab2, CreatePrefabWithReferences(prefab2, material2, shader));
+            buildInfo.AssetInfo.Add(prefab3, CreatePrefabWithReferences(prefab3, material1, shader));
 
             List<string> assetDependencies;
-            buildInfo.assetToBundles.GetOrAdd(prefab1, out assetDependencies);
+            buildInfo.AssetToBundles.GetOrAdd(prefab1, out assetDependencies);
             assetDependencies.Add(prefab1.ToString());
 
-            buildInfo.assetToBundles.GetOrAdd(prefab2, out assetDependencies);
+            buildInfo.AssetToBundles.GetOrAdd(prefab2, out assetDependencies);
             assetDependencies.Add(prefab2.ToString());
 
-            buildInfo.assetToBundles.GetOrAdd(prefab3, out assetDependencies);
+            buildInfo.AssetToBundles.GetOrAdd(prefab3, out assetDependencies);
             assetDependencies.Add(prefab3.ToString());
 
             List<GUID> assetsInBundle;
-            buildInfo.bundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
+            buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
             assetsInBundle.Add(prefab1);
 
-            buildInfo.bundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
+            buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
             assetsInBundle.Add(prefab2);
 
-            buildInfo.bundleToAssets.GetOrAdd(prefab3.ToString(), out assetsInBundle);
+            buildInfo.BundleToAssets.GetOrAdd(prefab3.ToString(), out assetsInBundle);
             assetsInBundle.Add(prefab3);
 
             return buildInfo;

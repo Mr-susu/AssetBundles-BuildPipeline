@@ -44,7 +44,7 @@ namespace UnityEditor.Build
 
             var useCache = (assetBundleOptions & BuildAssetBundleOptions.ForceRebuildAssetBundle) == 0;
 
-            BuildResultInfo result;
+            DefaultBuildResultInfo result;
             errorCode = BundleBuildPipeline.BuildAssetBundles(buildInput, bundleSettings, compression, outputPath, out result, useCache);
             if (errorCode < BuildPipelineCodes.Success)
                 return null;

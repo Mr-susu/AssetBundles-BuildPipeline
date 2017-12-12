@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using UnityEditor.Build.AssetBundle.Shared;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEditor.Experimental.Build.Player;
@@ -13,12 +12,8 @@ namespace UnityEditor.Build.AssetBundle
 
         public const string kDefaultOutputPath = "AssetBundles";
 
-        // TODO: Replace with calls to UnityEditor.Build.BuildPipelineInterfaces once i make it more generic & public
-        public static Func<BuildDependencyInfo, object, BuildPipelineCodes> PostBuildDependency;
+        public static DefaultBuildCallbacks BuildCallbacks = new DefaultBuildCallbacks();
 
-        public static Func<BuildDependencyInfo, BuildWriteInfo, object, BuildPipelineCodes> PostBuildPacking;
-
-        public static Func<BuildDependencyInfo, BuildWriteInfo, BuildResultInfo, object, BuildPipelineCodes> PostBuildWriting;
 
         public static BuildSettings GenerateBundleBuildSettings(TypeDB typeDB)
         {
@@ -48,66 +43,30 @@ namespace UnityEditor.Build.AssetBundle
             return settings;
         }
 
-        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out BuildResultInfo result, object callbackUserData = null, bool useCache = true)
+        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out DefaultBuildResultInfo result, object callbackUserData = null, bool useCache = true)
         {
             var buildTimer = new Stopwatch();
             buildTimer.Start();
 
-            if (ProjectValidator.HasDirtyScenes())
-            {
-                result = new BuildResultInfo();
-                buildTimer.Stop();
-                BuildLogger.LogError("Build Asset Bundles failed in: {0:c}. Error: {1}.", buildTimer.Elapsed, BuildPipelineCodes.UnsavedChanges);
-                return BuildPipelineCodes.UnsavedChanges;
-            }
-
             var exitCode = BuildPipelineCodes.Success;
-            result = new BuildResultInfo();
+            result = new DefaultBuildResultInfo();
 
             AssetDatabase.SaveAssets();
 
-            // TODO: Until new AssetDatabaseV2 is online, we need to switch platforms
-            EditorUserBuildSettings.SwitchActiveBuildTarget(settings.group, settings.target);
-
-            var stepCount = BundleDependencyStep.StepCount + BundlePackingStep.StepCount + BundleWritingStep.StepCount;
-            using (var progressTracker = new BuildProgressTracker(stepCount))
+            using (var progressTracker = new BuildProgressTracker(10))
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
-                    BuildDependencyInfo buildInfo;
-                    exitCode = BundleDependencyStep.Build(input, settings, out buildInfo, useCache, progressTracker);
-                    if (exitCode < BuildPipelineCodes.Success)
-                        return exitCode;
+                    var buildInput = new DefaultBundleInput(input);
+                    var buildParams = new DefaultBuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
 
-                    if (PostBuildDependency != null)
-                    {
-                        exitCode = PostBuildDependency.Invoke(buildInfo, callbackUserData);
-                        if (exitCode < BuildPipelineCodes.Success)
-                            return exitCode;
-                    }
+                    var buildContext = new DefaultBuildContext(buildInput, buildParams);
+                    buildContext.SetContextObject<IDependencyCallback>(BuildCallbacks);
+                    buildContext.SetContextObject<IPackingCallback>(BuildCallbacks);
+                    buildContext.SetContextObject<IWritingCallback>(BuildCallbacks);
 
-                    BuildWriteInfo writeInfo;
-                    exitCode = BundlePackingStep.Build(buildInfo, out writeInfo, useCache, progressTracker);
-                    if (exitCode < BuildPipelineCodes.Success)
-                        return exitCode;
-
-                    if (PostBuildPacking != null)
-                    {
-                        exitCode = PostBuildPacking.Invoke(buildInfo, writeInfo, callbackUserData);
-                        if (exitCode < BuildPipelineCodes.Success)
-                            return exitCode;
-                    }
-
-                    exitCode = BundleWritingStep.Build(settings, compression, outputFolder, buildInfo, writeInfo, out result, useCache, progressTracker);
-                    if (exitCode < BuildPipelineCodes.Success)
-                        return exitCode;
-
-                    if (PostBuildWriting != null)
-                    {
-                        exitCode = PostBuildWriting.Invoke(buildInfo, writeInfo, result, callbackUserData);
-                        if (exitCode < BuildPipelineCodes.Success)
-                            return exitCode;
-                    }
+                    var buildRunner = DefaultBuildPipeline.Create();
+                    exitCode = buildRunner.Run(buildContext);
                 }
             }
 

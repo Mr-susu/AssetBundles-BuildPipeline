@@ -29,15 +29,15 @@ namespace UnityEditor.Build.Tests
             var prefab2 = new GUID("00000000000000000000000000000002");
 
             var virtualAsset = new GUID("21000000360000004b000000d3000000");
-            var virtualObject1 = dependency.assetInfo[prefab1].referencedObjects[0];    // Mesh
-            var virtualObject2 = dependency.assetInfo[prefab1].referencedObjects[1];    // MonoScript
+            var virtualObject1 = dependency.AssetInfo[prefab1].referencedObjects[0];    // Mesh
+            var virtualObject2 = dependency.AssetInfo[prefab1].referencedObjects[1];    // MonoScript
 
             // Ensure processor returns Success
             Assert.AreEqual(BuildPipelineCodes.Success, exitCode);
 
             // Ensure we created AssetLoadInfos for virtualAsset 1 & 2
             AssetLoadInfo vaInfo;
-            Assert.IsTrue(dependency.assetInfo.TryGetValue(virtualAsset, out vaInfo));
+            Assert.IsTrue(dependency.AssetInfo.TryGetValue(virtualAsset, out vaInfo));
             Assert.AreEqual(2, vaInfo.includedObjects.Count);
             Assert.AreEqual(virtualObject1, vaInfo.includedObjects[0]);
             Assert.AreEqual(virtualObject2, vaInfo.includedObjects[1]);
@@ -47,18 +47,18 @@ namespace UnityEditor.Build.Tests
 
             // Ensure we created dependency lists for the new virtual assets
             List<string> assetDependencies;
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(virtualAsset, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(virtualAsset, out assetDependencies));
             Assert.AreEqual(1, assetDependencies.Count);
             Assert.AreEqual(virtualAsset.ToString(), assetDependencies[0]);
 
 
             // Ensure we updated the dependency lists for the existing assets
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(prefab1, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(prefab1, out assetDependencies));
             Assert.AreEqual(2, assetDependencies.Count);
             Assert.AreEqual(prefab1.ToString(), assetDependencies[0]);
             Assert.AreEqual(virtualAsset.ToString(), assetDependencies[1]);
 
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(prefab2, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(prefab2, out assetDependencies));
             Assert.AreEqual(2, assetDependencies.Count);
             Assert.AreEqual(prefab2.ToString(), assetDependencies[0]);
             Assert.AreEqual(virtualAsset.ToString(), assetDependencies[1]);
@@ -66,7 +66,7 @@ namespace UnityEditor.Build.Tests
 
             // Ensure we updated the asset lists for bundles
             List<GUID> assetsInBundle;
-            Assert.IsTrue(dependency.bundleToAssets.TryGetValue(virtualAsset.ToString(), out assetsInBundle));
+            Assert.IsTrue(dependency.BundleToAssets.TryGetValue(virtualAsset.ToString(), out assetsInBundle));
             Assert.AreEqual(1, assetsInBundle.Count);
             Assert.AreEqual(virtualAsset, assetsInBundle[0]);
         }
@@ -87,24 +87,24 @@ namespace UnityEditor.Build.Tests
             var fbx = new GUID("00000000000000000000000000000010");
 
             var virtualAsset1 = new GUID("ee000000c8000000a2000000aa000000");
-            var virtualObject1 = dependency.assetInfo[prefab1].referencedObjects[0];    // Mesh
+            var virtualObject1 = dependency.AssetInfo[prefab1].referencedObjects[0];    // Mesh
 
             var virtualAsset2 = new GUID("21000000360000004b000000d3000000");
-            var virtualObject2 = dependency.assetInfo[prefab1].referencedObjects[1];    // MonoScript
+            var virtualObject2 = dependency.AssetInfo[prefab1].referencedObjects[1];    // MonoScript
 
             // Ensure processor returns Success
             Assert.AreEqual(BuildPipelineCodes.Success, exitCode);
 
             // Ensure we created AssetLoadInfos for virtualAsset 1 & 2
             AssetLoadInfo vaInfo1;
-            Assert.IsTrue(dependency.assetInfo.TryGetValue(virtualAsset1, out vaInfo1));
+            Assert.IsTrue(dependency.AssetInfo.TryGetValue(virtualAsset1, out vaInfo1));
             Assert.AreEqual(1, vaInfo1.includedObjects.Count);
             Assert.AreEqual(virtualObject1, vaInfo1.includedObjects[0]);
             Assert.AreEqual(virtualAsset1, vaInfo1.asset);
             Assert.AreEqual(virtualAsset1.ToString(), vaInfo1.address);
 
             AssetLoadInfo vaInfo2;
-            Assert.IsTrue(dependency.assetInfo.TryGetValue(virtualAsset2, out vaInfo2));
+            Assert.IsTrue(dependency.AssetInfo.TryGetValue(virtualAsset2, out vaInfo2));
             Assert.AreEqual(1, vaInfo2.includedObjects.Count);
             Assert.AreEqual(virtualObject2, vaInfo2.includedObjects[0]);
             Assert.AreEqual(virtualAsset2, vaInfo2.asset);
@@ -113,31 +113,31 @@ namespace UnityEditor.Build.Tests
 
             // Ensure we created dependency lists for the new virtual assets
             List<string> assetDependencies;
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(virtualAsset1, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(virtualAsset1, out assetDependencies));
             Assert.AreEqual(1, assetDependencies.Count);
             Assert.AreEqual(virtualAsset1.ToString(), assetDependencies[0]);
 
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(virtualAsset2, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(virtualAsset2, out assetDependencies));
             Assert.AreEqual(1, assetDependencies.Count);
             Assert.AreEqual(virtualAsset2.ToString(), assetDependencies[0]);
 
 
             // Ensure we updated the dependency lists for the existing assets
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(prefab1, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(prefab1, out assetDependencies));
             Assert.AreEqual(4, assetDependencies.Count);
             Assert.AreEqual(prefab1.ToString(), assetDependencies[0]);
             Assert.AreEqual(fbx.ToString(), assetDependencies[1]);
             Assert.AreEqual(virtualAsset1.ToString(), assetDependencies[2]);
             Assert.AreEqual(virtualAsset2.ToString(), assetDependencies[3]);
 
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(prefab2, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(prefab2, out assetDependencies));
             Assert.AreEqual(4, assetDependencies.Count);
             Assert.AreEqual(prefab2.ToString(), assetDependencies[0]);
             Assert.AreEqual(fbx.ToString(), assetDependencies[1]);
             Assert.AreEqual(virtualAsset1.ToString(), assetDependencies[2]);
             Assert.AreEqual(virtualAsset2.ToString(), assetDependencies[3]);
 
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(fbx, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(fbx, out assetDependencies));
             Assert.AreEqual(2, assetDependencies.Count);
             Assert.AreEqual(fbx.ToString(), assetDependencies[0]);
             Assert.AreEqual(virtualAsset1.ToString(), assetDependencies[1]);
@@ -145,11 +145,11 @@ namespace UnityEditor.Build.Tests
 
             // Ensure we updated the asset lists for bundles
             List<GUID> assetsInBundle;
-            Assert.IsTrue(dependency.bundleToAssets.TryGetValue(virtualAsset1.ToString(), out assetsInBundle));
+            Assert.IsTrue(dependency.BundleToAssets.TryGetValue(virtualAsset1.ToString(), out assetsInBundle));
             Assert.AreEqual(1, assetsInBundle.Count);
             Assert.AreEqual(virtualAsset1, assetsInBundle[0]);
 
-            Assert.IsTrue(dependency.bundleToAssets.TryGetValue(virtualAsset2.ToString(), out assetsInBundle));
+            Assert.IsTrue(dependency.BundleToAssets.TryGetValue(virtualAsset2.ToString(), out assetsInBundle));
             Assert.AreEqual(1, assetsInBundle.Count);
             Assert.AreEqual(virtualAsset2, assetsInBundle[0]);
         }
@@ -170,12 +170,12 @@ namespace UnityEditor.Build.Tests
 
             // Ensure we updated the dependency lists for the virtual assets
             List<string> assetDependencies;
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(virtualAsset1, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(virtualAsset1, out assetDependencies));
             Assert.AreEqual(2, assetDependencies.Count);
             Assert.AreEqual(virtualAsset1.ToString(), assetDependencies[0]);
             Assert.AreEqual(virtualAsset2.ToString(), assetDependencies[1]);
 
-            Assert.IsTrue(dependency.assetToBundles.TryGetValue(virtualAsset2, out assetDependencies));
+            Assert.IsTrue(dependency.AssetToBundles.TryGetValue(virtualAsset2, out assetDependencies));
             Assert.AreEqual(1, assetDependencies.Count);
             Assert.AreEqual(virtualAsset2.ToString(), assetDependencies[0]);
         }
