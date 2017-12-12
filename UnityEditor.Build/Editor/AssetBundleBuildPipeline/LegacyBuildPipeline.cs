@@ -20,10 +20,16 @@ namespace UnityEditor.Build
         public static AssetBundleManifest BuildAssetBundles(string outputPath, AssetBundleBuild[] builds, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildLayout = new BuildLayout();
-            if (ConvertAssetBundleBuild.Run(builds, buildLayout) < BuildPipelineCodes.Success)
+            var tempBundles = new TempBundleBuild { BundleBuild = builds };
+            if (ConvertAssetBundleBuild.Run(tempBundles, buildLayout) < BuildPipelineCodes.Success)
                 return null;
 
             return BuildAssetBundles_Internal(outputPath, buildLayout, assetBundleOptions, targetPlatform);
+        }
+
+        internal struct TempBundleBuild : IAssetBundleBuild
+        {
+            public AssetBundleBuild[] BundleBuild { get; set; }
         }
 
         internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildLayout buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)

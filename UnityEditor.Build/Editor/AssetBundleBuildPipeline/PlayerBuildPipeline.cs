@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using UnityEditor.Build.AssetBundle.DataConverters;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.Player;
 
@@ -57,8 +56,7 @@ namespace UnityEditor.Build.Player
             {
                 using (var buildCleanup = new BuildStateCleanup(false, kTempPlayerBuildPath))
                 {
-                    var scriptDependency = new ScriptDependency(useCache, progressTracker);
-                    exitCode = scriptDependency.Convert(settings, kTempPlayerBuildPath, out result);
+                    exitCode = Tasks.BuildPlayerScripts.Run(progressTracker, settings, kTempPlayerBuildPath, out result);
                     if (exitCode < BuildPipelineCodes.Success)
                         return exitCode;
                 }
