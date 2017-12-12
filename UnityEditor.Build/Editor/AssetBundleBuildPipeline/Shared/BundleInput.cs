@@ -5,7 +5,9 @@ namespace UnityEditor.Build
 {
     public class BuildLayout : IBuildLayout
     {
-        public BuildInput Layout { get; protected set; }
+        public BuildInput Layout { get; set; }
+
+        internal BuildLayout() { }
 
         public BuildLayout(BuildInput bundleInput)
         {

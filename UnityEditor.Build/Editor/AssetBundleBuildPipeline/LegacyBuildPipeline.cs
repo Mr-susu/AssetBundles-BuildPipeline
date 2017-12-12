@@ -1,6 +1,7 @@
 ﻿using UnityEditor.Build.AssetBundle;
-using UnityEditor.Build.AssetBundle.DataConverters;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Player;
+using UnityEditor.Build.Tasks;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEditor.Experimental.Build.Player;
 using UnityEngine;
@@ -12,21 +13,20 @@ namespace UnityEditor.Build
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildInput = BundleBuildInterface.GenerateBuildInput();
-            return BuildAssetBundles_Internal(outputPath, buildInput, assetBundleOptions, targetPlatform);
+            var buildLayout = new BuildLayout(buildInput);
+            return BuildAssetBundles_Internal(outputPath, buildLayout, assetBundleOptions, targetPlatform);
         }
 
         public static AssetBundleManifest BuildAssetBundles(string outputPath, AssetBundleBuild[] builds, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
-            BuildInput buildInput;
-            var converter = new AssetBundleBuildConverter(false, null);
-            var errorCode = converter.Convert(builds, out buildInput);
-            if (errorCode < BuildPipelineCodes.Success)
+            var buildLayout = new BuildLayout();
+            if (ConvertAssetBundleBuild.Run(builds, buildLayout) < BuildPipelineCodes.Success)
                 return null;
 
-            return BuildAssetBundles_Internal(outputPath, buildInput, assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, buildLayout, assetBundleOptions, targetPlatform);
         }
 
-        internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, BuildInput buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
+        internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildLayout buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var playerSettings = PlayerBuildPipeline.GeneratePlayerBuildSettings(targetPlatform);
             ScriptCompilationResult scriptResults;
@@ -45,7 +45,7 @@ namespace UnityEditor.Build
             var useCache = (assetBundleOptions & BuildAssetBundleOptions.ForceRebuildAssetBundle) == 0;
 
             BuildResultInfo result;
-            errorCode = BundleBuildPipeline.BuildAssetBundles(buildInput, bundleSettings, compression, outputPath, out result, useCache);
+            errorCode = BundleBuildPipeline.BuildAssetBundles(buildInput.Layout, bundleSettings, compression, outputPath, out result, useCache);
             if (errorCode < BuildPipelineCodes.Success)
                 return null;
 
