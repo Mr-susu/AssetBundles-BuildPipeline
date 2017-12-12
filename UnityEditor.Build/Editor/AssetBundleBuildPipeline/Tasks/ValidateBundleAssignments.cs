@@ -20,10 +20,10 @@ namespace UnityEditor.Build.Tasks
             foreach (KeyValuePair<string, List<GUID>> bundle in input.BundleToAssets)
             {
                 // TODO: Handle Player Data & Raw write formats
-                if (IsAssetBundle(bundle.Value))
+                if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                     continue;
 
-                if (IsSceneBundle(bundle.Value))
+                if (ExtensionMethods.ValidSceneBundle(bundle.Value))
                     continue;
 
                 BuildLogger.LogError("Bundle '{0}' contains mixed assets and scenes.", bundle.Key);
@@ -31,16 +31,6 @@ namespace UnityEditor.Build.Tasks
             }
 
             return BuildPipelineCodes.Success;
-        }
-
-        protected static bool IsAssetBundle(List<GUID> assets)
-        {
-            return assets.All(ExtensionMethods.ValidAsset);
-        }
-
-        protected static bool IsSceneBundle(List<GUID> assets)
-        {
-            return assets.All(ExtensionMethods.ValidScene);
         }
     }
 }

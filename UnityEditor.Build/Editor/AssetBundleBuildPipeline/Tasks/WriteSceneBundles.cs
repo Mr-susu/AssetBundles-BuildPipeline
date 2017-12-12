@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Build.AssetBundle.DataTypes;
+using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;

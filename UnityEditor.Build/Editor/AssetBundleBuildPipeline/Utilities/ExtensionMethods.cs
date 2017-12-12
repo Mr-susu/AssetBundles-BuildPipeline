@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace UnityEditor.Build.Utilities
 {
     public static class ExtensionMethods
     {
-        public static bool IsNullOrEmpty<T> (this ICollection<T> collection)
+        public static bool IsNullOrEmpty<T>(this ICollection<T> collection)
         {
             return collection == null || collection.Count == 0;
         }
@@ -50,12 +51,22 @@ namespace UnityEditor.Build.Utilities
             return true;
         }
 
+        public static bool ValidSceneBundle(List<GUID> assets)
+        {
+            return assets.All(ValidScene);
+        }
+
         public static bool ValidAsset(GUID asset)
         {
             var path = AssetDatabase.GUIDToAssetPath(asset.ToString());
             if (string.IsNullOrEmpty(path) || path.EndsWith(".unity") || !File.Exists(path))
                 return false;
             return true;
+        }
+
+        public static bool ValidAssetBundle(List<GUID> assets)
+        {
+            return assets.All(ValidAsset);
         }
     }
 }

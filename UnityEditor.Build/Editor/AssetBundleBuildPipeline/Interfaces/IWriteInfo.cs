@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using UnityEditor.Build.AssetBundle.DataTypes;
+using UnityEditor.Build.WriteTypes;
 
 namespace UnityEditor.Build.Interfaces
 {

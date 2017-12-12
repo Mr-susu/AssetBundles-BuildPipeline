@@ -4,7 +4,7 @@ using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
-namespace UnityEditor.Build.AssetBundle.DataTypes
+namespace UnityEditor.Build.WriteTypes
 {
     public class RawWriteOperation : IWriteOperation
     {

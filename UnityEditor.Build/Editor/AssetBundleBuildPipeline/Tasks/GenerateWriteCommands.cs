@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using UnityEditor.Build.AssetBundle.DataTypes;
+using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
@@ -25,40 +25,18 @@ namespace UnityEditor.Build.Tasks
             foreach (KeyValuePair<string, List<GUID>> bundle in input.BundleToAssets)
             {
                 // TODO: Handle Player Data & Raw write formats
-                if (IsAssetBundle(bundle.Value))
+                if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                 {
                     var op = CreateAssetBundleWriteOperation(packingMethod, bundle.Key, bundle.Value, input);
                     output.AssetBundles.Add(bundle.Key, op);
                 }
-                else if (IsSceneBundle(bundle.Value))
+                else if (ExtensionMethods.ValidSceneBundle(bundle.Value))
                 {
                     var ops = CreateSceneBundleWriteOperations(packingMethod, bundle.Key, bundle.Value, input);
                     output.SceneBundles.Add(bundle.Key, ops);
                 }
             }
             return BuildPipelineCodes.Success;
-        }
-
-        protected static bool IsAssetBundle(List<GUID> assets)
-        {
-            foreach (GUID asset in assets)
-            {
-                if (ExtensionMethods.ValidAsset(asset))
-                    continue;
-                return false;
-            }
-            return true;
-        }
-
-        protected static bool IsSceneBundle(List<GUID> assets)
-        {
-            foreach (GUID asset in assets)
-            {
-                if (ExtensionMethods.ValidScene(asset))
-                    continue;
-                return false;
-            }
-            return true;
         }
 
         protected static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo input)

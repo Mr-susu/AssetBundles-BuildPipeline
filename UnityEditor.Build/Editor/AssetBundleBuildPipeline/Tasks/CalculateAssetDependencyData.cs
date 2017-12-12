@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
@@ -18,14 +17,6 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>());
         }
 
-        protected static bool ValidAsset(GUID asset)
-        {
-            string path = AssetDatabase.GUIDToAssetPath(asset.ToString());
-            if (string.IsNullOrEmpty(path) || path.EndsWith(".unity") || !File.Exists(path))
-                return false;
-            return true;
-        }
-
         protected static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
         {
             if (!useCache)
@@ -42,7 +33,7 @@ namespace UnityEditor.Build.Tasks
 
         public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
         {
-            List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ValidAsset(x.asset)).ToList();
+            List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidAsset(x.asset)).ToList();
             if (buildParams.ProgressTracker != null) // can't use null propagation
                 buildParams.ProgressTracker.StartStep("Processing Asset Dependencies", assetIDs.Count());
 
