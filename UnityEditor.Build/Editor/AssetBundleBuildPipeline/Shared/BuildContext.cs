@@ -8,44 +8,43 @@ namespace UnityEditor.Build
     {
         Dictionary<Type, IContextObject> m_ContextObjects;
 
-        public BuildContext(IBuildLayout buildLayout, IBuildParams buildParams)
+        public BuildContext()
         {
             m_ContextObjects = new Dictionary<Type, IContextObject>();
-            SetContextObject<IBuildLayout>(buildLayout);
-            SetContextObject<IBuildParams>(buildParams);
-
-            SetContextObject<IDependencyInfo>(new BuildDependencyInfo());
-            SetContextObject<IWriteInfo>(new BuildWriteInfo());
-            SetContextObject<IResultInfo>(new BuildResultInfo());
-
-            SetContextObject<IDeterministicIdentifiers>(new Unity5PackedIdentifiers());
-
-            var callbacks = new BuildCallbacks();
-            SetContextObject<IDependencyCallback>(callbacks);
-            SetContextObject<IPackingCallback>(callbacks);
-            SetContextObject<IWritingCallback>(callbacks);
         }
 
-        public BuildContext(IBuildLayout buildLayout, IBuildParams buildParams, IDependencyCallback dependencyCallback, IPackingCallback packingCallback, IWritingCallback writingCallback)
+        public BuildContext(params IContextObject[] buildParams)
         {
             m_ContextObjects = new Dictionary<Type, IContextObject>();
-            SetContextObject<IBuildLayout>(buildLayout);
-            SetContextObject<IBuildParams>(buildParams);
-
-            SetContextObject<IDependencyInfo>(new BuildDependencyInfo());
-            SetContextObject<IWriteInfo>(new BuildWriteInfo());
-            SetContextObject<IResultInfo>(new BuildResultInfo());
-
-            SetContextObject<IDeterministicIdentifiers>(new Unity5PackedIdentifiers());
-
-            SetContextObject<IDependencyCallback>(dependencyCallback);
-            SetContextObject<IPackingCallback>(packingCallback);
-            SetContextObject<IWritingCallback>(writingCallback);
+            foreach (var buildParam in buildParams)
+                SetContextObject(buildParam);
         }
 
-        public void SetContextObject<T>(IContextObject contextObject) where T : IContextObject
+        public void SetContextObject<T>(T contextObject) where T : IContextObject
         {
             m_ContextObjects[typeof(T)] = contextObject;
+        }
+
+        public void SetContextObject(IContextObject contextObject)
+        {
+            Type iCType = typeof(IContextObject);
+            Type[] iTypes = contextObject.GetType().GetInterfaces();
+            foreach (Type iType in iTypes)
+            {
+                if (!iCType.IsAssignableFrom(iType) || iType == iCType)
+                    continue;
+                m_ContextObjects[iType] = contextObject;
+            }
+        }
+
+        public bool ContainsContextObject<T>() where T : IContextObject
+        {
+            return ContainsContextObject(typeof(T));
+        }
+
+        public bool ContainsContextObject(Type type)
+        {
+            return m_ContextObjects.ContainsKey(type);
         }
 
         public T GetContextObject<T>() where T : IContextObject
@@ -53,9 +52,16 @@ namespace UnityEditor.Build
             return (T)m_ContextObjects[typeof(T)];
         }
 
-        public bool TryGetContextObject<T>(out IContextObject contextObject) where T : IContextObject
+        public bool TryGetContextObject<T>(out T contextObject) where T : IContextObject
         {
-            return m_ContextObjects.TryGetValue(typeof(T), out contextObject);
+            IContextObject cachedContext;
+            if (m_ContextObjects.TryGetValue(typeof(T), out cachedContext) && cachedContext is T)
+            {
+                contextObject = (T)cachedContext;
+                return true;
+            }
+            contextObject = default(T);
+            return false;
         }
     }
 }

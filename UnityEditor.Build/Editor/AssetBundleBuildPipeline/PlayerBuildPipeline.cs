@@ -8,6 +8,8 @@ namespace UnityEditor.Build.Player
     {
         public const string kTempPlayerBuildPath = "Temp/PlayerBuildData";
 
+        public static ScriptBuildCallbacks BuildCallbacks = new ScriptBuildCallbacks();
+
         public static ScriptCompilationSettings GeneratePlayerBuildSettings()
         {
             var settings = new ScriptCompilationSettings();
@@ -46,19 +48,28 @@ namespace UnityEditor.Build.Player
             return settings;
         }
 
-        public static BuildPipelineCodes BuildPlayerScripts(ScriptCompilationSettings settings, out ScriptCompilationResult result, bool useCache = true)
+        public static BuildPipelineCodes BuildPlayerScripts(ScriptCompilationSettings settings, string outputFolder, out BuildResultInfo result, bool useCache = true)
         {
             var buildTimer = new Stopwatch();
             buildTimer.Start();
 
             BuildPipelineCodes exitCode;
+            result = new BuildResultInfo();
+
             using (var progressTracker = new BuildProgressTracker(1))
             {
                 using (var buildCleanup = new BuildStateCleanup(false, kTempPlayerBuildPath))
                 {
-                    exitCode = Tasks.BuildPlayerScripts.Run(progressTracker, settings, kTempPlayerBuildPath, out result);
-                    if (exitCode < BuildPipelineCodes.Success)
-                        return exitCode;
+                    var buildParams = new BuildParams(settings, outputFolder, kTempPlayerBuildPath, useCache, progressTracker);
+
+                    var buildContext = new BuildContext(buildParams);
+                    buildContext.SetContextObject(BuildCallbacks);
+                    buildContext.SetContextObject(result);
+
+                    var pipeline = BuildPipeline.CreatePlayerScripts();
+                    exitCode = BuildRunner.Validate(pipeline, buildContext);
+                    if (exitCode >= BuildPipelineCodes.Success)
+                        exitCode = BuildRunner.Run(pipeline, buildContext);
                 }
             }
 

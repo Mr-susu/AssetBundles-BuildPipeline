@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
@@ -11,6 +12,9 @@ namespace UnityEditor.Build.Tasks
     {
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
+
+        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
@@ -49,7 +53,7 @@ namespace UnityEditor.Build.Tasks
 
                 var assetInfo = new AssetLoadInfo();
 
-                Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.Settings);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo))
                 {
                     SetOutputInformation(assetID, assetInfo, output);
@@ -59,8 +63,8 @@ namespace UnityEditor.Build.Tasks
                 assetInfo.asset = assetID.asset;
                 assetInfo.address = string.IsNullOrEmpty(assetID.address) ? AssetDatabase.GUIDToAssetPath(assetID.asset.ToString()) : assetID.address;
                 assetInfo.explicitDataLayout = true;
-                assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(assetID.asset, buildParams.Settings.target));
-                assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(assetInfo.includedObjects.ToArray(), buildParams.Settings.target, buildParams.Settings.typeDB));
+                assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(assetID.asset, buildParams.BundleSettings.target));
+                assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(assetInfo.includedObjects.ToArray(), buildParams.BundleSettings.target, buildParams.BundleSettings.typeDB));
 
                 SetOutputInformation(assetID, assetInfo, output);
 

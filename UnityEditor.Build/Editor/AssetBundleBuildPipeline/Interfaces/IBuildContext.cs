@@ -1,6 +1,13 @@
-﻿namespace UnityEditor.Build.Interfaces
+﻿using System;
+
+namespace UnityEditor.Build.Interfaces
 {
     public interface IContextObject { }
+
+    public interface IScriptsCallback : IContextObject
+    {
+        BuildPipelineCodes PostScripts(IBuildParams buildParams, IResultInfo resultInfo);
+    }
 
     public interface IDependencyCallback : IContextObject
     {
@@ -19,7 +26,11 @@
 
     public interface IBuildContext
     {
+        bool ContainsContextObject<T>() where T : IContextObject;
+        bool ContainsContextObject(Type type);
         T GetContextObject<T>() where T : IContextObject;
-        bool TryGetContextObject<T>(out IContextObject contextObject) where T : IContextObject;
+        bool TryGetContextObject<T>(out T contextObject) where T : IContextObject;
+        void SetContextObject<T>(T contextObject) where T : IContextObject;
+        void SetContextObject(IContextObject contextObject);
     }
 }

@@ -31,7 +31,7 @@ namespace UnityEditor.Build.Tasks
                 hashes.Add(AssetDatabase.GetAssetDependencyHash(path));
             }
 
-            return HashingMethods.CalculateMD5Hash(Version, operation, hashes, dependencies, globalUsage, buildUsage, buildParams.Settings);
+            return HashingMethods.CalculateMD5Hash(Version, operation, hashes, dependencies, globalUsage, buildUsage, buildParams.BundleSettings);
         }
 
         public override BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IResultInfo output)

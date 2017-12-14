@@ -1,4 +1,5 @@
-﻿using UnityEditor.Build.Interfaces;
+﻿using System;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 
@@ -8,6 +9,9 @@ namespace UnityEditor.Build.Tasks
     {
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
+
+        protected static Type[] s_RequiredTypes = { typeof(IAssetBundleBuild), typeof(IBuildLayout) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {

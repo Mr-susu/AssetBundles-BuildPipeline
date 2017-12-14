@@ -11,7 +11,7 @@ namespace UnityEditor.Build.AssetBundle
 
         public const string kDefaultOutputPath = "AssetBundles";
 
-        public static BuildCallbacks buildCallbacks = new BuildCallbacks();
+        public static BundleBuildCallbacks BuildCallbacks = new BundleBuildCallbacks();
 
 
         public static BuildSettings GenerateBundleBuildSettings(TypeDB typeDB)
@@ -42,15 +42,13 @@ namespace UnityEditor.Build.AssetBundle
             return settings;
         }
 
-        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out BuildResultInfo result, object callbackUserData = null, bool useCache = true)
+        public static BuildPipelineCodes BuildAssetBundles(BuildInput input, BuildSettings settings, BuildCompression compression, string outputFolder, out BuildResultInfo result, bool useCache = true)
         {
             var buildTimer = new Stopwatch();
             buildTimer.Start();
 
-            var exitCode = BuildPipelineCodes.Success;
+            BuildPipelineCodes exitCode;
             result = new BuildResultInfo();
-
-            AssetDatabase.SaveAssets();
 
             using (var progressTracker = new BuildProgressTracker(10))
             {
@@ -59,10 +57,16 @@ namespace UnityEditor.Build.AssetBundle
                     var buildInput = new BuildLayout(input);
                     var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
 
-                    var buildContext = new BuildContext(buildInput, buildParams, buildCallbacks, buildCallbacks, buildCallbacks);
+                    var buildContext = new BuildContext(buildInput, buildParams);
+                    buildContext.SetContextObject(new BuildDependencyInfo());
+                    buildContext.SetContextObject(new BuildWriteInfo());
+                    buildContext.SetContextObject(BuildCallbacks);
+                    buildContext.SetContextObject(result);
 
-                    var buildRunner = BuildPipeline.Create();
-                    exitCode = buildRunner.Run(buildContext);
+                    var pipeline = BuildPipeline.CreateBundle();
+                    exitCode = BuildRunner.Validate(pipeline, buildContext);
+                    if (exitCode >= BuildPipelineCodes.Success)
+                        exitCode = BuildRunner.Run(pipeline, buildContext);
                 }
             }
 

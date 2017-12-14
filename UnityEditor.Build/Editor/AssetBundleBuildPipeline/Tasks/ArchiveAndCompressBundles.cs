@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,9 +14,12 @@ namespace UnityEditor.Build.Tasks
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
+        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>(), context.GetContextObject<IResultInfo>());
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>());
         }
 
         protected static Hash128 CalculateInputHash(bool useCache, ResourceFile[] resourceFiles, BuildCompression compression)
@@ -29,12 +33,12 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, fileHashes, compression);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo input, IResultInfo output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo resultInfo)
         {
-            foreach (KeyValuePair<string, List<WriteResult>> bundle in input.BundleResults)
+            foreach (KeyValuePair<string, List<WriteResult>> bundle in resultInfo.BundleResults)
             {
                 ResourceFile[] resourceFiles = bundle.Value.SelectMany(x => x.resourceFiles).ToArray();
-                Hash128 hash = CalculateInputHash(buildParams.UseCache, resourceFiles, buildParams.Compression);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, resourceFiles, buildParams.BundleCompression);
 
                 var finalPath = string.Format("{0}/{1}", buildParams.OutputFolder, bundle.Key);
                 var writePath = string.Format("{0}/{1}", buildParams.GetTempOrCacheBuildPath(hash), bundle.Key);
@@ -42,14 +46,14 @@ namespace UnityEditor.Build.Tasks
                 var bundleInfo = new BundleInfo();
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref bundleInfo))
                 {
-                    SetOutputInformation(writePath, finalPath, bundleInfo, output);
+                    SetOutputInformation(writePath, finalPath, bundleInfo, resultInfo);
                     continue;
                 }
 
                 bundleInfo.name = bundle.Key;
-                bundleInfo.crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles, writePath, buildParams.Compression);
+                bundleInfo.crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles, writePath, buildParams.BundleCompression);
                 bundleInfo.hash = HashingMethods.CalculateFileMD5Hash(writePath);
-                SetOutputInformation(writePath, finalPath, bundleInfo, output);
+                SetOutputInformation(writePath, finalPath, bundleInfo, resultInfo);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, bundleInfo))
                     BuildLogger.LogWarning("Unable to cache ArchiveAndCompressBundles result for bundle {0}.", bundle.Key);

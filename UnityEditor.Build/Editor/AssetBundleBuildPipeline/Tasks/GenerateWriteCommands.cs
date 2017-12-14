@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
@@ -15,9 +16,19 @@ namespace UnityEditor.Build.Tasks
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
+        protected static Type[] s_RequiredTypes = { typeof(IDependencyInfo), typeof(IWriteInfo) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+
+        public IDeterministicIdentifiers PackingMethod { get; protected set; }
+
+        public GenerateWriteCommands(IDeterministicIdentifiers packingMethod)
+        {
+            PackingMethod = packingMethod;
+        }
+
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IDeterministicIdentifiers>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>());
+            return Run(PackingMethod, context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>());
         }
 
         public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IDependencyInfo input, IWriteInfo output)

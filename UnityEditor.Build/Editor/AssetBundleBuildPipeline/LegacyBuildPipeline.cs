@@ -2,6 +2,7 @@
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Player;
 using UnityEditor.Build.Tasks;
+using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEditor.Experimental.Build.Player;
 using UnityEngine;
@@ -10,6 +11,8 @@ namespace UnityEditor.Build
 {
     public static class LegacyBuildPipeline
     {
+        public const string kTempLegacyBuildPath = "Temp/LegacyBuildData";
+
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildInput = BundleBuildInterface.GenerateBuildInput();
@@ -34,28 +37,38 @@ namespace UnityEditor.Build
 
         internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildLayout buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
-            var playerSettings = PlayerBuildPipeline.GeneratePlayerBuildSettings(targetPlatform);
-            ScriptCompilationResult scriptResults;
-            var errorCode = PlayerBuildPipeline.BuildPlayerScripts(playerSettings, out scriptResults);
-            if (errorCode < BuildPipelineCodes.Success)
-                return null;
-
-            var bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(scriptResults.typeDB, targetPlatform);
-
             BuildCompression compression = BuildCompression.DefaultLZMA;
             if ((assetBundleOptions & BuildAssetBundleOptions.ChunkBasedCompression) != 0)
                 compression = BuildCompression.DefaultLZ4;
             else if ((assetBundleOptions & BuildAssetBundleOptions.UncompressedAssetBundle) != 0)
                 compression = BuildCompression.DefaultUncompressed;
 
-            var useCache = (assetBundleOptions & BuildAssetBundleOptions.ForceRebuildAssetBundle) == 0;
+            bool useCache = (assetBundleOptions & BuildAssetBundleOptions.ForceRebuildAssetBundle) == 0;
 
-            BuildResultInfo result;
-            errorCode = BundleBuildPipeline.BuildAssetBundles(buildInput.Layout, bundleSettings, compression, outputPath, out result, useCache);
-            if (errorCode < BuildPipelineCodes.Success)
-                return null;
+            ScriptCompilationSettings scriptSettings = PlayerBuildPipeline.GeneratePlayerBuildSettings(targetPlatform);
+            BuildSettings bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(null, targetPlatform); // Legacy & Full pipelines set typedb during run
 
-            // TODO: Unity 5 Manifest
+            BuildPipelineCodes exitCode;
+            using (var progressTracker = new BuildProgressTracker(10))
+            {
+                using (var buildCleanup = new BuildStateCleanup(true, kTempLegacyBuildPath))
+                {
+                    var buildParams = new BuildParams(scriptSettings, bundleSettings, compression, outputPath, kTempLegacyBuildPath, useCache, progressTracker);
+
+                    var buildContext = new BuildContext(buildInput, buildParams);
+                    buildContext.SetContextObject(new BuildDependencyInfo());
+                    buildContext.SetContextObject(new BuildWriteInfo());
+                    buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
+                    buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
+
+                    var pipeline = BuildPipeline.CreateLegacy();
+                    exitCode = BuildRunner.Validate(pipeline, buildContext);
+                    if (exitCode >= BuildPipelineCodes.Success)
+                        exitCode = BuildRunner.Run(pipeline, buildContext);
+                }
+            }
+
+            // TODO: Return Unity 5 Manifest
             return null;
         }
     }

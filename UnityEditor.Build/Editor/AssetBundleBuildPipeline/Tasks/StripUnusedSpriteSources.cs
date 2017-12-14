@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
@@ -12,9 +13,12 @@ namespace UnityEditor.Build.Tasks
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
+        protected static Type[] s_RequiredTypes = { typeof(IResultInfo), typeof(IDependencyInfo), typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IDependencyInfo>());
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>());
         }
 
         protected static Hash128 CalculateInputHash(bool useCache, IDependencyInfo input)
@@ -25,19 +29,19 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, input.AssetInfo, input.SceneInfo);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input, IDependencyInfo output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo dependencyInfo)
         {
             var spriteSourceRef = new Dictionary<ObjectIdentifier, int>();
 
-            Hash128 hash = CalculateInputHash(buildParams.UseCache, input);
+            Hash128 hash = CalculateInputHash(buildParams.UseCache, dependencyInfo);
             if (TryLoadFromCache(buildParams.UseCache, hash, ref spriteSourceRef))
             {
-                SetOutputInformation(spriteSourceRef, output);
+                SetOutputInformation(spriteSourceRef, dependencyInfo);
                 return BuildPipelineCodes.SuccessCached;
             }
 
-            // Create sprite source ref count map
-            foreach (KeyValuePair<GUID, AssetLoadInfo> assetInfo in input.AssetInfo)
+            // CreateBundle sprite source ref count map
+            foreach (KeyValuePair<GUID, AssetLoadInfo> assetInfo in dependencyInfo.AssetInfo)
             {
                 string path = AssetDatabase.GUIDToAssetPath(assetInfo.Value.asset.ToString());
                 var importer = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -46,7 +50,7 @@ namespace UnityEditor.Build.Tasks
             }
 
             // Count refs from assets
-            var assetRefs = input.AssetInfo.SelectMany(x => x.Value.referencedObjects);
+            var assetRefs = dependencyInfo.AssetInfo.SelectMany(x => x.Value.referencedObjects);
             foreach (ObjectIdentifier reference in assetRefs)
             {
                 int refCount = 0;
@@ -58,7 +62,7 @@ namespace UnityEditor.Build.Tasks
             }
 
             // Count refs from scenes
-            var sceneRefs = input.SceneInfo.SelectMany(x => x.Value.referencedObjects);
+            var sceneRefs = dependencyInfo.SceneInfo.SelectMany(x => x.Value.referencedObjects);
             foreach (ObjectIdentifier reference in sceneRefs)
             {
                 int refCount = 0;
@@ -69,7 +73,7 @@ namespace UnityEditor.Build.Tasks
                 spriteSourceRef[reference] = ++refCount;
             }
 
-            SetOutputInformation(spriteSourceRef, output);
+            SetOutputInformation(spriteSourceRef, dependencyInfo);
 
             if (!TrySaveToCache(buildParams.UseCache, hash, spriteSourceRef))
                 BuildLogger.LogWarning("Unable to cache StripUnusedSpriteSources results.");

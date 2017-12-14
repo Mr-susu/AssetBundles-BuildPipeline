@@ -1,4 +1,5 @@
-﻿using UnityEditor.Build.Interfaces;
+﻿using System;
+using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.Player;
 
@@ -9,31 +10,33 @@ namespace UnityEditor.Build.Tasks
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
+        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
+        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            throw new System.NotImplementedException();
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>());
         }
 
-        public static BuildPipelineCodes Run(IProgressTracker progressTracker, ScriptCompilationSettings settings, string outputFolder, out ScriptCompilationResult output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo output)
         {
-            if (progressTracker != null) // can't use null propagation
+            if (buildParams.ProgressTracker != null) // can't use null propagation
             {
-                progressTracker.StartStep("Compiling Player Scripts", 1);
-                if (!progressTracker.UpdateProgress(""))
+                buildParams.ProgressTracker.StartStep("Compiling Player Scripts", 1);
+                if (!buildParams.ProgressTracker.UpdateProgress(""))
                 {
-                    output = new ScriptCompilationResult();
-                    progressTracker.EndProgress();
+                    buildParams.ProgressTracker.EndProgress();
                     return BuildPipelineCodes.Canceled;
                 }
             }
 
-            output = PlayerBuildInterface.CompilePlayerScripts(settings, outputFolder);
-            if (output.assemblies.IsNullOrEmpty() && output.typeDB == null)
+            output.ScriptResults = PlayerBuildInterface.CompilePlayerScripts(buildParams.ScriptSettings, buildParams.OutputFolder);
+            if (output.ScriptResults.assemblies.IsNullOrEmpty() && output.ScriptResults.typeDB == null)
                 return BuildPipelineCodes.Error;
 
-            if (progressTracker != null) // can't use null propagation
+            if (buildParams.ProgressTracker != null) // can't use null propagation
             {
-                if (!progressTracker.EndProgress())
+                if (!buildParams.ProgressTracker.EndProgress())
                     return BuildPipelineCodes.Canceled;
             }
             return BuildPipelineCodes.Success;

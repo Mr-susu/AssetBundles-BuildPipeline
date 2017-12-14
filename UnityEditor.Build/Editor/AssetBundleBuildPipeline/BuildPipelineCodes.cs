@@ -9,6 +9,7 @@
         Error = -1,
         Exception = -2,
         Canceled = -3,
-        UnsavedChanges = -4
+        UnsavedChanges = -4,
+        MissingRequiredObjects = -5
     }
 }

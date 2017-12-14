@@ -174,16 +174,14 @@ namespace UnityEditor.Build
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            if (m_Settings.useExperimentalPipeline)
-            {
-                ExperimentalBuildPipeline();
-                return;
-            }
-
             var buildTimer = new Stopwatch();
             buildTimer.Start();
 
-            var exitCode = LegacyBuildPipeline();
+            BuildPipelineCodes exitCode;
+            if (m_Settings.useExperimentalPipeline)
+                exitCode = ExperimentalBuildPipeline();
+            else
+                exitCode = LegacyBuildPipeline();
 
             buildTimer.Stop();
             if (exitCode == BuildPipelineCodes.Success)
@@ -196,23 +194,37 @@ namespace UnityEditor.Build
 
         private BuildPipelineCodes ExperimentalBuildPipeline()
         {
-            var playerSettings = PlayerBuildPipeline.GeneratePlayerBuildSettings(m_Settings.buildTarget, m_Settings.buildGroup);
-            ScriptCompilationResult scriptResults;
-            var errorCode = PlayerBuildPipeline.BuildPlayerScripts(playerSettings, out scriptResults);
-            if (errorCode < BuildPipelineCodes.Success)
-                return errorCode;
-
-            var bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(scriptResults.typeDB, m_Settings.buildTarget, m_Settings.buildGroup);
-
             BuildCompression compression = BuildCompression.DefaultLZ4;
             if (m_Settings.compressionType == CompressionType.None)
                 compression = BuildCompression.DefaultUncompressed;
             else if (m_Settings.compressionType == CompressionType.Lzma)
                 compression = BuildCompression.DefaultLZMA;
 
-            BuildResultInfo bundleResult;
-            errorCode = BundleBuildPipeline.BuildAssetBundles(BundleBuildInterface.GenerateBuildInput(), bundleSettings, compression, m_Settings.outputPath, out bundleResult, null, m_Settings.useBuildCache);
-            return errorCode;
+            ScriptCompilationSettings scriptSettings = PlayerBuildPipeline.GeneratePlayerBuildSettings(m_Settings.buildTarget, m_Settings.buildGroup);
+            BuildSettings bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(null, m_Settings.buildTarget, m_Settings.buildGroup); // Legacy pipeline will set typedb during run
+
+            BuildPipelineCodes exitCode;
+            using (var progressTracker = new BuildProgressTracker(10))
+            {
+                using (var buildCleanup = new BuildStateCleanup(true, BundleBuildPipeline.kTempBundleBuildPath))
+                {
+                    var buildParams = new BuildParams(scriptSettings, bundleSettings, compression, m_Settings.outputPath, BundleBuildPipeline.kTempBundleBuildPath, m_Settings.useBuildCache, progressTracker);
+                    var buildLayout = new BuildLayout(BundleBuildInterface.GenerateBuildInput());
+
+                    var buildContext = new BuildContext(buildLayout, buildParams);
+                    buildContext.SetContextObject(new BuildDependencyInfo());
+                    buildContext.SetContextObject(new BuildWriteInfo());
+                    buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
+                    buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
+
+                    var pipeline = BuildPipeline.CreateLegacy();
+                    exitCode = BuildRunner.Validate(pipeline, buildContext);
+                    if (exitCode >= BuildPipelineCodes.Success)
+                        exitCode = BuildRunner.Run(pipeline, buildContext);
+                }
+            }
+
+            return exitCode;
         }
 
         private BuildPipelineCodes LegacyBuildPipeline()

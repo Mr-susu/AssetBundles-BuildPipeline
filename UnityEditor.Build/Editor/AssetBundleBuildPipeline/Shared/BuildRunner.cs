@@ -1,21 +1,15 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build
 {
-    public class BuildRunner
+    public static class BuildRunner
     {
-        protected List<IBuildTask> m_Tasks = new List<IBuildTask>();
-
-        public void AddTask(IBuildTask task)
+        public static BuildPipelineCodes Run(IList<IBuildTask> pipeline, IBuildContext context)
         {
-            m_Tasks.Add(task);
-        }
-
-        public BuildPipelineCodes Run(IBuildContext context)
-        {
-            foreach (IBuildTask task in m_Tasks)
+            foreach (IBuildTask task in pipeline)
             {
                 try
                 {
@@ -28,6 +22,27 @@ namespace UnityEditor.Build
                     BuildLogger.LogException(e);
                     return BuildPipelineCodes.Exception;
                 }
+            }
+            return BuildPipelineCodes.Success;
+        }
+
+        public static BuildPipelineCodes Validate(IList<IBuildTask> pipeline, IBuildContext context)
+        {
+            HashSet<Type> requiredTypes = new HashSet<Type>();
+            foreach (IBuildTask task in pipeline)
+                requiredTypes.UnionWith(task.RequiredContextTypes);
+
+            List<string> missingTypes = new List<string>();
+            foreach (Type requiredType in requiredTypes)
+            {
+                if (!context.ContainsContextObject(requiredType))
+                    missingTypes.Add(requiredType.Name);
+            }
+
+            if (missingTypes.Count > 0)
+            {
+                BuildLogger.LogError("Missing required object types to run build pipeline:\n{0}", string.Join(",", missingTypes.ToArray()));
+                return BuildPipelineCodes.MissingRequiredObjects;
             }
             return BuildPipelineCodes.Success;
         }

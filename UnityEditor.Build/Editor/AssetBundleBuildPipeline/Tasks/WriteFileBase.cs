@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
@@ -12,6 +13,9 @@ namespace UnityEditor.Build.Tasks
     public abstract class WriteFileBase : IBuildTask
     {
         public virtual int Version { get { return 1; } }
+
+        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo), typeof(IWriteInfo), typeof(IResultInfo) };
+        public virtual Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
 
         public virtual BuildPipelineCodes Run(IBuildContext context)
         {
@@ -41,7 +45,7 @@ namespace UnityEditor.Build.Tasks
                 return BuildPipelineCodes.SuccessCached;
             }
 
-            result = op.Write(buildParams.GetTempOrCacheBuildPath(hash), dependencies, buildParams.Settings, globalUsage, buildUsage);
+            result = op.Write(buildParams.GetTempOrCacheBuildPath(hash), dependencies, buildParams.BundleSettings, globalUsage, buildUsage);
             SetOutputInformation(bundleName, result, output);
 
             if (!TrySaveToCache(buildParams.UseCache, hash, result))
