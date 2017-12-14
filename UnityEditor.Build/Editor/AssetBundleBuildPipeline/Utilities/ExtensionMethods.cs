@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace UnityEditor.Build.Utilities
 {
@@ -41,6 +42,11 @@ namespace UnityEditor.Build.Utilities
             var t = array[index2];
             array[index2] = array[index1];
             array[index1] = t;
+        }
+
+        public static string HumanReadable(this string camelCased)
+        {
+            return Regex.Replace(camelCased, @"(\B[A-Z]+?(?=[A-Z][^A-Z])|\B[A-Z]+?(?=[^A-Z]))", " $1");
         }
 
         public static bool ValidScene(GUID asset)

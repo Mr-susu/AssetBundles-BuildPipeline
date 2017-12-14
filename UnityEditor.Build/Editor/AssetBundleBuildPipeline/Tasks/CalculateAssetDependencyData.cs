@@ -38,19 +38,8 @@ namespace UnityEditor.Build.Tasks
         public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
         {
             List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidAsset(x.asset)).ToList();
-            if (buildParams.ProgressTracker != null) // can't use null propagation
-                buildParams.ProgressTracker.StartStep("Processing Asset Dependencies", assetIDs.Count());
-
             foreach (AssetIdentifier assetID in assetIDs)
             {
-                if (buildParams.ProgressTracker != null) // can't use null propagation
-                {
-                    if (buildParams.ProgressTracker.EndProgress())
-                        return BuildPipelineCodes.Canceled;
-                    string assetPath = AssetDatabase.GUIDToAssetPath(assetID.asset.ToString());
-                    buildParams.ProgressTracker.UpdateProgress(assetPath);
-                }
-
                 var assetInfo = new AssetLoadInfo();
 
                 Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
@@ -72,8 +61,6 @@ namespace UnityEditor.Build.Tasks
                     BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", assetID.asset);
             }
 
-            if (buildParams.ProgressTracker != null && buildParams.ProgressTracker.EndProgress())
-                return BuildPipelineCodes.Canceled;
             return BuildPipelineCodes.Success;
         }
 
@@ -98,7 +85,7 @@ namespace UnityEditor.Build.Tasks
         protected static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo))
-            return false;
+                return false;
             return true;
         }
     }

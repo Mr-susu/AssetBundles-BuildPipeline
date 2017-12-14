@@ -9,10 +9,17 @@ namespace UnityEditor.Build
     {
         public static BuildPipelineCodes Run(IList<IBuildTask> pipeline, IBuildContext context)
         {
+            IProgressTracker tracker;
+            if (context.TryGetContextObject(out tracker))
+                tracker.TaskCount = pipeline.Count;
+
             foreach (IBuildTask task in pipeline)
             {
                 try
                 {
+                    if (tracker != null && !tracker.UpdateTask(task.GetType().Name.HumanReadable()))
+                        return BuildPipelineCodes.Canceled;
+
                     var result = task.Run(context);
                     if (result < BuildPipelineCodes.Success)
                         return result;

@@ -50,18 +50,18 @@ namespace UnityEditor.Build.AssetBundle
             BuildPipelineCodes exitCode;
             result = new BuildResultInfo();
 
-            using (var progressTracker = new BuildProgressTracker(10))
+            using (var progressTracker = new BuildProgressTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
                     var buildInput = new BuildLayout(input);
-                    var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache, progressTracker);
+                    var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache);
 
-                    var buildContext = new BuildContext(buildInput, buildParams);
+                    var buildContext = new BuildContext(buildInput, buildParams, progressTracker);
                     buildContext.SetContextObject(new BuildDependencyInfo());
                     buildContext.SetContextObject(new BuildWriteInfo());
-                    buildContext.SetContextObject(BuildCallbacks);
                     buildContext.SetContextObject(result);
+                    buildContext.SetContextObject(BuildCallbacks);
 
                     var pipeline = BuildPipeline.CreateBundle();
                     exitCode = BuildRunner.Validate(pipeline, buildContext);

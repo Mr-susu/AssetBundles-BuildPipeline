@@ -56,15 +56,15 @@ namespace UnityEditor.Build.Player
             BuildPipelineCodes exitCode;
             result = new BuildResultInfo();
 
-            using (var progressTracker = new BuildProgressTracker(1))
+            using (var progressTracker = new BuildProgressTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(false, kTempPlayerBuildPath))
                 {
-                    var buildParams = new BuildParams(settings, outputFolder, kTempPlayerBuildPath, useCache, progressTracker);
+                    var buildParams = new BuildParams(settings, outputFolder, kTempPlayerBuildPath, useCache);
 
-                    var buildContext = new BuildContext(buildParams);
-                    buildContext.SetContextObject(BuildCallbacks);
+                    var buildContext = new BuildContext(buildParams, progressTracker);
                     buildContext.SetContextObject(result);
+                    buildContext.SetContextObject(BuildCallbacks);
 
                     var pipeline = BuildPipeline.CreatePlayerScripts();
                     exitCode = BuildRunner.Validate(pipeline, buildContext);

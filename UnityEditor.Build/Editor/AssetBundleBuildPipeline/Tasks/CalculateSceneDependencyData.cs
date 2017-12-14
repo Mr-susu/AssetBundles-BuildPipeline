@@ -38,19 +38,9 @@ namespace UnityEditor.Build.Tasks
         public BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
         {
             List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidScene(x.asset)).ToList();
-            if (buildParams.ProgressTracker != null) // can't use null propagation yet
-                buildParams.ProgressTracker.StartStep("Processing Scene Dependencies", assetIDs.Count());
-
             foreach (AssetIdentifier assetID in assetIDs)
             {
                 string scenePath = AssetDatabase.GUIDToAssetPath(assetID.asset.ToString());
-
-                if (buildParams.ProgressTracker != null) // can't use null propagation yet
-                {
-                    if (buildParams.ProgressTracker.EndProgress())
-                        return BuildPipelineCodes.Canceled;
-                    buildParams.ProgressTracker.UpdateProgress(scenePath);
-                }
 
                 var usageTags = new BuildUsageTagSet();
                 var sceneInfo = new SceneDependencyInfo();
@@ -69,8 +59,6 @@ namespace UnityEditor.Build.Tasks
                     BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", assetID.asset);
             }
 
-            if (buildParams.ProgressTracker != null && buildParams.ProgressTracker.EndProgress())
-                return BuildPipelineCodes.Canceled;
             return BuildPipelineCodes.Success;
         }
 

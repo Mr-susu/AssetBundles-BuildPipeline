@@ -18,9 +18,8 @@ namespace UnityEditor.Build
         public string TempOutputFolder { get; protected set; }
 
         public bool UseCache { get; protected set; }
-        public IProgressTracker ProgressTracker { get; protected set; }
 
-        public BuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
+        public BuildParams(BuildSettings settings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false)
         {
             BundleSettings = settings;
             BundleCompression = compression;
@@ -29,10 +28,9 @@ namespace UnityEditor.Build
                 throw new ArgumentException("Argument cannot be null or empty.", "tempOutputFolder");
             TempOutputFolder = tempOutputFolder;
             UseCache = useCache;
-            ProgressTracker = progressTracker;
         }
 
-        public BuildParams(ScriptCompilationSettings settings, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
+        public BuildParams(ScriptCompilationSettings settings, string outputFolder, string tempOutputFolder = null, bool useCache = false)
         {
             ScriptSettings = settings;
             OutputFolder = outputFolder;
@@ -40,10 +38,9 @@ namespace UnityEditor.Build
                 throw new ArgumentException("Argument cannot be null or empty.", "tempOutputFolder");
             TempOutputFolder = tempOutputFolder;
             UseCache = useCache;
-            ProgressTracker = progressTracker;
         }
 
-        public BuildParams(ScriptCompilationSettings scriptSettings, BuildSettings bundleSettings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false, IProgressTracker progressTracker = null)
+        public BuildParams(ScriptCompilationSettings scriptSettings, BuildSettings bundleSettings, BuildCompression compression, string outputFolder, string tempOutputFolder = null, bool useCache = false)
         {
             ScriptSettings = scriptSettings;
             BundleSettings = bundleSettings;
@@ -53,7 +50,6 @@ namespace UnityEditor.Build
                 throw new ArgumentException("Argument cannot be null or empty.", "tempOutputFolder");
             TempOutputFolder = tempOutputFolder;
             UseCache = useCache;
-            ProgressTracker = progressTracker;
         }
 
         public string GetTempOrCacheBuildPath(Hash128 hash)

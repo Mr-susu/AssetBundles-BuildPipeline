@@ -1,4 +1,5 @@
-﻿using UnityEditor.Build.Utilities;
+﻿using UnityEditor.Build.Interfaces;
+using UnityEditor.Build.Utilities;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
@@ -30,23 +31,23 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             if (ProgressTracker == null)
                 return;
 
-            ProgressTracker.StartStep(title, progressCount);
+            //ProgressTracker.StartStep(title, progressCount);
         }
 
         public virtual bool UpdateProgressBar(string info)
         {
-            if (ProgressTracker == null)
-                return true;
+            //if (ProgressTracker == null)
+            return true;
 
-            return ProgressTracker.UpdateProgress(info);
+            //return ProgressTracker.UpdateProgress(info);
         }
 
         public virtual bool EndProgressBar()
         {
-            if (ProgressTracker == null)
-                return true;
+            //if (ProgressTracker == null)
+            return true;
 
-            return ProgressTracker.EndProgress();
+            //return ProgressTracker.EndProgress();
         }
     }
 

@@ -13,7 +13,6 @@ namespace UnityEditor.Build.Interfaces
         string OutputFolder { get; }
         string TempOutputFolder { get; }
         bool UseCache { get; }
-        IProgressTracker ProgressTracker { get; }
 
         string GetTempOrCacheBuildPath(Hash128 hash);
     }
