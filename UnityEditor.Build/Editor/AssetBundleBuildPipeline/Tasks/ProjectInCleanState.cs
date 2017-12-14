@@ -20,8 +20,8 @@ namespace UnityEditor.Build.Tasks
         public static BuildPipelineCodes Run()
         {
             if (ProjectValidator.HasDirtyScenes())
-                return BuildPipelineCodes.Success;
-            return BuildPipelineCodes.UnsavedChanges;
+                return BuildPipelineCodes.UnsavedChanges;
+            return BuildPipelineCodes.Success;
         }
     }
 }

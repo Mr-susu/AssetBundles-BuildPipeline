@@ -68,7 +68,7 @@ namespace UnityEditor.Build.Tasks
 
                 SetOutputInformation(assetID, assetInfo, output);
 
-                if (TrySaveToCache(buildParams.UseCache, hash, assetInfo))
+                if (!TrySaveToCache(buildParams.UseCache, hash, assetInfo))
                     BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", assetID.asset);
             }
 
@@ -98,8 +98,8 @@ namespace UnityEditor.Build.Tasks
         protected static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo))
-                return true;
             return false;
+            return true;
         }
     }
 }

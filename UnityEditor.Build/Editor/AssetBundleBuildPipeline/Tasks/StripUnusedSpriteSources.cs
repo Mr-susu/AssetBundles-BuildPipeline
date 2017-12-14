@@ -108,8 +108,8 @@ namespace UnityEditor.Build.Tasks
         protected static bool TrySaveToCache(bool useCache, Hash128 hash, Dictionary<ObjectIdentifier, int> spriteSourceRef)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, spriteSourceRef))
-                return true;
-            return false;
+                return false;
+            return true;
         }
     }
 }
