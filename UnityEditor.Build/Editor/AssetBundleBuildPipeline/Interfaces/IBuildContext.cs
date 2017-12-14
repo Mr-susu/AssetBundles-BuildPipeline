@@ -34,5 +34,7 @@ namespace UnityEditor.Build.Interfaces
 
         void SetContextObject<T>(IContextObject contextObject) where T : IContextObject;
         void SetContextObject(IContextObject contextObject);
+
+        bool TryGetContextObject<T>(out T contextObject) where T : IContextObject;
     }
 }

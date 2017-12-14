@@ -61,5 +61,18 @@ namespace UnityEditor.Build
         {
             return m_ContextObjects[type];
         }
+
+        public bool TryGetContextObject<T>(out T contextObject) where T : IContextObject
+        {
+            IContextObject cachedContextObject;
+            if (m_ContextObjects.TryGetValue(typeof(T), out cachedContextObject) && cachedContextObject is T)
+            {
+                contextObject = (T)cachedContextObject;
+                return true;
+            }
+
+            contextObject = default(T);
+            return false;
+        }
     }
 }
