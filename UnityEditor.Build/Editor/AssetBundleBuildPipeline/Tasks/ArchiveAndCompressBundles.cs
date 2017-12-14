@@ -46,14 +46,14 @@ namespace UnityEditor.Build.Tasks
                 var bundleInfo = new BundleInfo();
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref bundleInfo))
                 {
-                    SetOutputInformation(writePath, finalPath, bundleInfo, resultInfo);
+                    SetOutputInformation(writePath, finalPath, bundle.Key, bundleInfo, resultInfo);
                     continue;
                 }
 
-                bundleInfo.name = bundle.Key;
+                bundleInfo.fileName = finalPath;
                 bundleInfo.crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles, writePath, buildParams.BundleCompression);
                 bundleInfo.hash = HashingMethods.CalculateFileMD5Hash(writePath);
-                SetOutputInformation(writePath, finalPath, bundleInfo, resultInfo);
+                SetOutputInformation(writePath, finalPath, bundle.Key, bundleInfo, resultInfo);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, bundleInfo))
                     BuildLogger.LogWarning("Unable to cache ArchiveAndCompressBundles result for bundle {0}.", bundle.Key);
@@ -80,7 +80,7 @@ namespace UnityEditor.Build.Tasks
             return true;
         }
 
-        protected static void SetOutputInformation(string writePath, string finalPath, BundleInfo bundleInfo, IResultInfo output)
+        protected static void SetOutputInformation(string writePath, string finalPath, string bundleName, BundleInfo bundleInfo, IResultInfo output)
         {
             if (finalPath != writePath)
             {
@@ -88,7 +88,7 @@ namespace UnityEditor.Build.Tasks
                 Directory.CreateDirectory(directory);
                 File.Copy(writePath, finalPath, true);
             }
-            output.BundleInfos.Add(finalPath, bundleInfo);
+            output.BundleInfos.Add(bundleName, bundleInfo);
         }
     }
 }

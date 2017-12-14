@@ -6,7 +6,7 @@ namespace UnityEditor.Build
     [Serializable]
     public struct BundleInfo
     {
-        public string name;
+        public string fileName;
         public uint crc;
         public Hash128 hash;
     }
