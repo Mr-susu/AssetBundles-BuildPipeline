@@ -20,16 +20,21 @@ namespace UnityEditor.Build
                 SetContextObject(buildParam);
         }
 
-        public void SetContextObject<T>(T contextObject) where T : IContextObject
+        public void SetContextObject<T>(IContextObject contextObject) where T : IContextObject
         {
+            var type = typeof(T);
+            if (!type.IsInterface)
+                throw new InvalidOperationException(string.Format("Passed in type '{0}' is not an interface.", type));
+            if (!(contextObject is T))
+                throw new InvalidOperationException(string.Format("'{0}' is not of passed in type '{1}'.", contextObject.GetType(), type));
             m_ContextObjects[typeof(T)] = contextObject;
         }
 
         public void SetContextObject(IContextObject contextObject)
         {
-            Type iCType = typeof(IContextObject);
+            var iCType = typeof(IContextObject);
             Type[] iTypes = contextObject.GetType().GetInterfaces();
-            foreach (Type iType in iTypes)
+            foreach (var iType in iTypes)
             {
                 if (!iCType.IsAssignableFrom(iType) || iType == iCType)
                     continue;
@@ -52,16 +57,9 @@ namespace UnityEditor.Build
             return (T)m_ContextObjects[typeof(T)];
         }
 
-        public bool TryGetContextObject<T>(out T contextObject) where T : IContextObject
+        public IContextObject GetContextObject(Type type)
         {
-            IContextObject cachedContext;
-            if (m_ContextObjects.TryGetValue(typeof(T), out cachedContext) && cachedContext is T)
-            {
-                contextObject = (T)cachedContext;
-                return true;
-            }
-            contextObject = default(T);
-            return false;
+            return m_ContextObjects[type];
         }
     }
 }

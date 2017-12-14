@@ -28,11 +28,11 @@ namespace UnityEditor.Build
 
         public static BuildPipelineCodes Validate(IList<IBuildTask> pipeline, IBuildContext context)
         {
-            HashSet<Type> requiredTypes = new HashSet<Type>();
+            var requiredTypes = new HashSet<Type>();
             foreach (IBuildTask task in pipeline)
                 requiredTypes.UnionWith(task.RequiredContextTypes);
 
-            List<string> missingTypes = new List<string>();
+            var missingTypes = new List<string>();
             foreach (Type requiredType in requiredTypes)
             {
                 if (!context.ContainsContextObject(requiredType))
@@ -41,7 +41,7 @@ namespace UnityEditor.Build
 
             if (missingTypes.Count > 0)
             {
-                BuildLogger.LogError("Missing required object types to run build pipeline:\n{0}", string.Join(",", missingTypes.ToArray()));
+                BuildLogger.LogError("Missing required object types to run build pipeline:\n{0}", string.Join(", ", missingTypes.ToArray()));
                 return BuildPipelineCodes.MissingRequiredObjects;
             }
             return BuildPipelineCodes.Success;
