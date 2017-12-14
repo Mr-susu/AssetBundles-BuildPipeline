@@ -25,7 +25,9 @@ namespace UnityEditor.Build
         {
             pipeline.Add(new CalculateSceneDependencyData());
             pipeline.Add(new CalculateAssetDependencyData());
-            pipeline.Add(new CalculateBundleLookups());
+            pipeline.Add(new GenerateBundleDependencyLookups());
+            pipeline.Add(new GenerateAssetToBundleDependency());
+            pipeline.Add(new GenerateSceneToBundleDependency());
             pipeline.Add(new PostDependencyCallback());
         }
 
@@ -99,7 +101,7 @@ namespace UnityEditor.Build
             // Writing
             AddWritingTasks(pipeline);
             // Generate manifest files
-            // TODO: IMPL
+            // TODO: IMPL manifest generation
             return pipeline;
         }
     }

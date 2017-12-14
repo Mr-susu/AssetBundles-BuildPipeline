@@ -214,6 +214,7 @@ namespace UnityEditor.Build
                     var buildContext = new BuildContext(buildLayout, buildParams);
                     buildContext.SetContextObject(new BuildDependencyInfo());
                     buildContext.SetContextObject(new BuildWriteInfo());
+                    buildContext.SetContextObject(new BuildResultInfo());
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
 

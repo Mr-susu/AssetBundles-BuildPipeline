@@ -6,7 +6,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class CalculateBundleLookups : IBuildTask
+    public class GenerateBundleDependencyLookups : IBuildTask
     {
         protected const int k_Version = 1;
         public int Version { get { return k_Version; } }

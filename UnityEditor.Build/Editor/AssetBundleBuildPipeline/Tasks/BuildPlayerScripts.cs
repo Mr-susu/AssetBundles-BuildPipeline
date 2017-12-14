@@ -30,7 +30,9 @@ namespace UnityEditor.Build.Tasks
                 }
             }
 
-            output.ScriptResults = PlayerBuildInterface.CompilePlayerScripts(buildParams.ScriptSettings, buildParams.OutputFolder);
+            // TODO: Replace with call to GetTempOrCachePath
+            // TODO: Create tasks to copy scripts to correct output folder?
+            output.ScriptResults = PlayerBuildInterface.CompilePlayerScripts(buildParams.ScriptSettings, buildParams.TempOutputFolder);
             if (output.ScriptResults.assemblies.IsNullOrEmpty() && output.ScriptResults.typeDB == null)
                 return BuildPipelineCodes.Error;
 

@@ -15,20 +15,7 @@ namespace UnityEditor.Build
         public BuildCompression BundleCompression { get; protected set; }
         public string OutputFolder { get; protected set; }
 
-        string m_TempOutputFolder;
-        public string TempOutputFolder
-        {
-            get
-            {
-                if (UseCache)
-                    return m_TempOutputFolder;
-                return OutputFolder;
-            }
-            protected set
-            {
-                m_TempOutputFolder = value;
-            }
-        }
+        public string TempOutputFolder { get; protected set; }
 
         public bool UseCache { get; protected set; }
         public IProgressTracker ProgressTracker { get; protected set; }
