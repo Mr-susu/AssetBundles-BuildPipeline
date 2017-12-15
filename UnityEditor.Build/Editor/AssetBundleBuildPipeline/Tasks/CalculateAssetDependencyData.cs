@@ -18,7 +18,9 @@ namespace UnityEditor.Build.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>());
+            IProgressTracker tracker;
+            context.TryGetContextObject(out tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
         protected static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
@@ -35,19 +37,26 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
         {
             List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidAsset(x.asset)).ToList();
             foreach (AssetIdentifier assetID in assetIDs)
             {
                 var assetInfo = new AssetLoadInfo();
+                var assetPath = AssetDatabase.GUIDToAssetPath(assetID.asset.ToString());
 
                 Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo))
                 {
+                    if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", assetPath)))
+                        return BuildPipelineCodes.Canceled;
+
                     SetOutputInformation(assetID, assetInfo, output);
                     continue;
                 }
+
+                if (!tracker.UpdateInfoUnchecked(assetPath))
+                    return BuildPipelineCodes.Canceled;
 
                 assetInfo.asset = assetID.asset;
                 assetInfo.address = string.IsNullOrEmpty(assetID.address) ? AssetDatabase.GUIDToAssetPath(assetID.asset.ToString()) : assetID.address;

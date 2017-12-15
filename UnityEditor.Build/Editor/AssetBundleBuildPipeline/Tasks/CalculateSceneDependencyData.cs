@@ -18,7 +18,9 @@ namespace UnityEditor.Build.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>());
+            IProgressTracker tracker;
+            context.TryGetContextObject(out tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
         protected static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
@@ -35,7 +37,7 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output)
+        public BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
         {
             List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidScene(x.asset)).ToList();
             foreach (AssetIdentifier assetID in assetIDs)
@@ -48,9 +50,15 @@ namespace UnityEditor.Build.Tasks
                 Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref sceneInfo, ref usageTags))
                 {
+                    if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", scenePath)))
+                        return BuildPipelineCodes.Canceled;
+
                     SetOutputInformation(assetID, sceneInfo, usageTags, output);
                     continue;
                 }
+
+                if (!tracker.UpdateInfoUnchecked(scenePath))
+                    return BuildPipelineCodes.Canceled;
 
                 sceneInfo = BundleBuildInterface.PrepareScene(scenePath, buildParams.BundleSettings, usageTags, buildParams.GetTempOrCacheBuildPath(hash));
                 SetOutputInformation(assetID, sceneInfo, usageTags, output);

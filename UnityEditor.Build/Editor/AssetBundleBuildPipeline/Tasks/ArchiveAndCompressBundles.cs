@@ -19,7 +19,9 @@ namespace UnityEditor.Build.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>());
+            IProgressTracker tracker;
+            context.TryGetContextObject(out tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>(), tracker);
         }
 
         protected static Hash128 CalculateInputHash(bool useCache, ResourceFile[] resourceFiles, BuildCompression compression)
@@ -33,7 +35,7 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, fileHashes, compression);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo resultInfo)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo resultInfo, IProgressTracker tracker = null)
         {
             foreach (KeyValuePair<string, List<WriteResult>> bundle in resultInfo.BundleResults)
             {
@@ -46,9 +48,15 @@ namespace UnityEditor.Build.Tasks
                 var bundleInfo = new BundleInfo();
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref bundleInfo))
                 {
+                    if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", bundle.Key)))
+                        return BuildPipelineCodes.Canceled;
+
                     SetOutputInformation(writePath, finalPath, bundle.Key, bundleInfo, resultInfo);
                     continue;
                 }
+
+                if (!tracker.UpdateInfoUnchecked(bundle.Key))
+                    return BuildPipelineCodes.Canceled;
 
                 bundleInfo.fileName = finalPath;
                 bundleInfo.crc = BundleBuildInterface.ArchiveAndCompress(resourceFiles, writePath, buildParams.BundleCompression);

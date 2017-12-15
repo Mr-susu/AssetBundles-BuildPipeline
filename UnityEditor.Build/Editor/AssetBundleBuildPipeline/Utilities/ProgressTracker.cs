@@ -3,7 +3,7 @@ using UnityEditor.Build.Interfaces;
 
 namespace UnityEditor.Build.Utilities
 {
-    public class BuildProgressTracker : IProgressTracker, IDisposable
+    public class ProgressTracker : IProgressTracker, IDisposable
     {
         public int TaskCount { get; set; }
 
@@ -20,9 +20,9 @@ namespace UnityEditor.Build.Utilities
             return !EditorUtility.DisplayCancelableProgressBar(m_CurrentTaskTitle, "", Progress);
         }
 
-        public bool UpdateInfo(string info)
+        public bool UpdateInfo(string taskInfo)
         {
-            return !EditorUtility.DisplayCancelableProgressBar(m_CurrentTaskTitle, info, Progress);
+            return !EditorUtility.DisplayCancelableProgressBar(m_CurrentTaskTitle, taskInfo, Progress);
         }
 
         public void Dispose()

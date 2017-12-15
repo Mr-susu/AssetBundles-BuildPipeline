@@ -17,7 +17,7 @@ namespace UnityEditor.Build
             {
                 try
                 {
-                    if (tracker != null && !tracker.UpdateTask(task.GetType().Name.HumanReadable()))
+                    if (!tracker.UpdateTaskUnchecked(task.GetType().Name.HumanReadable()))
                         return BuildPipelineCodes.Canceled;
 
                     var result = task.Run(context);

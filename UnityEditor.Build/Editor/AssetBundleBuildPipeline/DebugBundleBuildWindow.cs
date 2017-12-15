@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.IO;
 using UnityEditor.Build.AssetBundle;
-using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Player;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
@@ -205,7 +204,7 @@ namespace UnityEditor.Build
             BuildSettings bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(null, m_Settings.buildTarget, m_Settings.buildGroup); // Legacy pipeline will set typedb during run
 
             BuildPipelineCodes exitCode;
-            using (var progressTracker = new BuildProgressTracker())
+            using (var progressTracker = new ProgressLoggingTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(true, BundleBuildPipeline.kTempBundleBuildPath))
                 {

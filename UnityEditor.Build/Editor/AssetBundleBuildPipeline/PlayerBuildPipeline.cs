@@ -56,7 +56,7 @@ namespace UnityEditor.Build.Player
             BuildPipelineCodes exitCode;
             result = new BuildResultInfo();
 
-            using (var progressTracker = new BuildProgressTracker())
+            using (var progressTracker = new ProgressTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(false, kTempPlayerBuildPath))
                 {

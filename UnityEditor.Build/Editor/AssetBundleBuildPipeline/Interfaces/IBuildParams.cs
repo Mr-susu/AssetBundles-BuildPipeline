@@ -1,5 +1,4 @@
-﻿using UnityEditor.Build.Utilities;
-using UnityEditor.Experimental.Build.AssetBundle;
+﻿using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEditor.Experimental.Build.Player;
 using UnityEngine;
 

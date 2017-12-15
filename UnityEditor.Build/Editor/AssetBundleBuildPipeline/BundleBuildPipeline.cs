@@ -50,7 +50,7 @@ namespace UnityEditor.Build.AssetBundle
             BuildPipelineCodes exitCode;
             result = new BuildResultInfo();
 
-            using (var progressTracker = new BuildProgressTracker())
+            using (var progressTracker = new ProgressTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {

@@ -49,7 +49,7 @@ namespace UnityEditor.Build
             BuildSettings bundleSettings = BundleBuildPipeline.GenerateBundleBuildSettings(null, targetPlatform); // Legacy & Full pipelines set typedb during run
 
             BuildPipelineCodes exitCode;
-            using (var progressTracker = new BuildProgressTracker())
+            using (var progressTracker = new ProgressTracker())
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempLegacyBuildPath))
                 {
