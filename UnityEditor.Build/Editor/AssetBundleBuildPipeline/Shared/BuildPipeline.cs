@@ -57,7 +57,7 @@ namespace UnityEditor.Build
             // Dependency
             AddDependencyTasks(pipeline);
             // Packing
-            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
+            AddPackingTasks(pipeline, new Unity5PackedIdentifiers()); // TODO: Replace with PrefabPackedIdentifiers when stable
             // Writing
             AddWritingTasks(pipeline);
             return pipeline;
@@ -71,7 +71,7 @@ namespace UnityEditor.Build
             // Dependency
             AddDependencyTasks(pipeline);
             // Packing
-            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
+            AddPackingTasks(pipeline, new Unity5PackedIdentifiers()); // TODO: Replace with PrefabPackedIdentifiers when stable
             // Writing
             AddWritingTasks(pipeline);
             return pipeline;
