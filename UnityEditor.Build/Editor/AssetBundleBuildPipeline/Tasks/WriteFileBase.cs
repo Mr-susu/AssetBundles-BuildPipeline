@@ -28,15 +28,17 @@ namespace UnityEditor.Build.Tasks
 
         protected virtual BuildPipelineCodes WriteSerialziedFiles(IBuildParams buildParams, string bundleName, IWriteOperation op, List<WriteCommand> allCommands, BuildUsageTagGlobal globalUsage, IResultInfo output)
         {
-            List<WriteCommand> dependencies = op.CalculateDependencies(allCommands);
+            List<WriteCommand> dependents = op.CalculateReverseDependencies(allCommands);
 
             ObjectIdentifier[] objectIDs = op.command.serializeObjects.Select(x => x.serializationObject).ToArray();
-            ObjectIdentifier[] dependentIDs = dependencies.SelectMany(x => x.serializeObjects.Select(y => y.serializationObject)).ToArray();
+            ObjectIdentifier[] dependentIDs = dependents.SelectMany(x => x.serializeObjects.Select(y => y.serializationObject)).ToArray();
 
             var buildUsage = new BuildUsageTagSet();
             BundleBuildInterface.CalculateBuildUsageTags(objectIDs, dependentIDs, globalUsage, buildUsage);
 
             var result = new WriteResult();
+
+            List<WriteCommand> dependencies = op.CalculateForwardDependencies(allCommands);
 
             Hash128 hash = CalculateInputHash(buildParams, op, dependencies, globalUsage, buildUsage);
             if (TryLoadFromCache(buildParams.UseCache, hash, ref result))

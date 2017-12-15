@@ -8,7 +8,9 @@ namespace UnityEditor.Build.WriteTypes
     {
         WriteCommand command { get; }
 
-        List<WriteCommand> CalculateDependencies(List<WriteCommand> allCommands);
+        List<WriteCommand> CalculateForwardDependencies(List<WriteCommand> allCommands);
+
+        List<WriteCommand> CalculateReverseDependencies(List<WriteCommand> allCommands);
 
         WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage);
     }
