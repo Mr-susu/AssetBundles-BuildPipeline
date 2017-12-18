@@ -8,6 +8,7 @@ using UnityEngine;
 
 namespace UnityEditor.Build
 {
+    [Serializable]
     public class BuildParams : IBuildParams
     {
         public ScriptCompilationSettings ScriptSettings { get; protected set; }
