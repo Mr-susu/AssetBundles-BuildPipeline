@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build;
@@ -6,6 +7,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.WriteTypes
 {
+    [Serializable]
     public class RawWriteOperation : IWriteOperation
     {
         public WriteCommand command { get { return m_Command; } }

@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.WriteTypes
 {
+    [Serializable]
     public class AssetBundleWriteOperation : RawWriteOperation
     {
         public AssetBundleInfo info { get { return m_Info; } }
