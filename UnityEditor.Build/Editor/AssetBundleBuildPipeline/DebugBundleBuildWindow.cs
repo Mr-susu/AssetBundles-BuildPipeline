@@ -218,7 +218,7 @@ namespace UnityEditor.Build
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
 
-                    var pipeline = BuildPipeline.CreateLegacy();
+                    var pipeline = BuildPipeline.CreateFull();
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);
