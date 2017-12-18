@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
@@ -11,7 +12,20 @@ namespace UnityEditor.Build.Tasks
 {
     public class WriteAssetBundles : WriteFileBase
     {
-        protected override Hash128 CalculateInputHash(IBuildParams buildParams, IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
+        protected const int k_Version = 1;
+        public override int Version { get { return k_Version; } }
+
+        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo), typeof(IWriteInfo), typeof(IResultInfo) };
+        public override Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+
+        public override BuildPipelineCodes Run(IBuildContext context)
+        {
+            IProgressTracker tracker;
+            context.TryGetContextObject(out tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>(), context.GetContextObject<IResultInfo>(), tracker);
+        }
+
+        protected static Hash128 CalculateInputHash(IBuildParams buildParams, IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
             if (!buildParams.UseCache)
                 return new Hash128();
@@ -31,16 +45,16 @@ namespace UnityEditor.Build.Tasks
                 hashes.Add(AssetDatabase.GetAssetDependencyHash(path));
             }
 
-            return HashingMethods.CalculateMD5Hash(Version, operation, hashes, dependencies, globalUsage, buildUsage, buildParams.BundleSettings);
+            return HashingMethods.CalculateMD5Hash(k_Version, operation, hashes, dependencies, globalUsage, buildUsage, buildParams.BundleSettings);
         }
 
-        public override BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IResultInfo output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo dependencyInfo, IWriteInfo writeInfo, IResultInfo output, IProgressTracker tracker = null)
         {
-            var allCommands = new List<WriteCommand>(input2.AssetBundles.Select(x => x.Value.command));
-            allCommands.AddRange(input2.SceneBundles.SelectMany(x => x.Value.Select(y => y.command)));
+            var allCommands = new List<WriteCommand>(writeInfo.AssetBundles.Select(x => x.Value.command));
+            allCommands.AddRange(writeInfo.SceneBundles.SelectMany(x => x.Value.Select(y => y.command)));
 
-            foreach (KeyValuePair<string, IWriteOperation> bundle in input2.AssetBundles)
-                WriteSerialziedFiles(buildParams, bundle.Key, bundle.Value, allCommands, input1.GlobalUsage, output);
+            foreach (KeyValuePair<string, IWriteOperation> bundle in writeInfo.AssetBundles)
+                WriteSerialziedFiles(buildParams, bundle.Key, bundle.Value, allCommands, dependencyInfo.GlobalUsage, output, CalculateInputHash, tracker);
 
             return BuildPipelineCodes.Success;
         }

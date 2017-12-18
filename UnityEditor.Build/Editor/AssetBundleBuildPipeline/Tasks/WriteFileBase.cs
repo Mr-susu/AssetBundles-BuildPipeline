@@ -12,21 +12,16 @@ namespace UnityEditor.Build.Tasks
 {
     public abstract class WriteFileBase : IBuildTask
     {
-        public virtual int Version { get { return 1; } }
+        public abstract int Version { get; }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo), typeof(IWriteInfo), typeof(IResultInfo) };
-        public virtual Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        public abstract Type[] RequiredContextTypes { get; }
 
-        public virtual BuildPipelineCodes Run(IBuildContext context)
-        {
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>(), context.GetContextObject<IResultInfo>());
-        }
+        public abstract BuildPipelineCodes Run(IBuildContext context);
 
-        protected abstract Hash128 CalculateInputHash(IBuildParams buildParams, IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage);
+        protected delegate Hash128 CalculateInputHashFunc(IBuildParams buildParams, IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage);
 
-        public abstract BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IResultInfo output);
-
-        protected virtual BuildPipelineCodes WriteSerialziedFiles(IBuildParams buildParams, string bundleName, IWriteOperation op, List<WriteCommand> allCommands, BuildUsageTagGlobal globalUsage, IResultInfo output)
+        protected static BuildPipelineCodes WriteSerialziedFiles(IBuildParams buildParams, string bundleName, IWriteOperation op, List<WriteCommand> allCommands, BuildUsageTagGlobal globalUsage,
+            IResultInfo output, CalculateInputHashFunc calculateInputHash, IProgressTracker tracker = null)
         {
             List<WriteCommand> dependents = op.CalculateReverseDependencies(allCommands);
 
@@ -40,12 +35,18 @@ namespace UnityEditor.Build.Tasks
 
             List<WriteCommand> dependencies = op.CalculateForwardDependencies(allCommands);
 
-            Hash128 hash = CalculateInputHash(buildParams, op, dependencies, globalUsage, buildUsage);
+            Hash128 hash = calculateInputHash(buildParams, op, dependencies, globalUsage, buildUsage);
             if (TryLoadFromCache(buildParams.UseCache, hash, ref result))
             {
+                if (!tracker.UpdateInfoUnchecked(string.Format("{0} : {1} (Cached)", bundleName, op.command.fileName)))
+                    return BuildPipelineCodes.Canceled;
+
                 SetOutputInformation(bundleName, result, output);
                 return BuildPipelineCodes.SuccessCached;
             }
+
+            if (!tracker.UpdateInfoUnchecked(string.Format("{0} : {1}", bundleName, op.command.fileName)))
+                return BuildPipelineCodes.Canceled;
 
             result = op.Write(buildParams.GetTempOrCacheBuildPath(hash), dependencies, buildParams.BundleSettings, globalUsage, buildUsage);
             SetOutputInformation(bundleName, result, output);
@@ -55,14 +56,14 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
-        protected virtual void SetOutputInformation(string bundleName, WriteResult result, IResultInfo output)
+        protected static void SetOutputInformation(string bundleName, WriteResult result, IResultInfo output)
         {
             List<WriteResult> results;
             output.BundleResults.GetOrAdd(bundleName, out results);
             results.Add(result);
         }
 
-        protected virtual bool TryLoadFromCache(bool useCache, Hash128 hash, ref WriteResult result)
+        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref WriteResult result)
         {
             WriteResult cachedResult;
             if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedResult))
@@ -73,7 +74,7 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected virtual bool TrySaveToCache(bool useCache, Hash128 hash, WriteResult result)
+        protected static bool TrySaveToCache(bool useCache, Hash128 hash, WriteResult result)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, result))
                 return false;
