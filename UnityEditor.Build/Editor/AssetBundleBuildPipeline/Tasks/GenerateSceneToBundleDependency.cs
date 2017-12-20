@@ -4,20 +4,20 @@ using UnityEditor.Build.Interfaces;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class GenerateSceneToBundleDependency : IBuildTask
+    public struct GenerateSceneToBundleDependency : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IDependencyInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
             return Run(context.GetContextObject<IDependencyInfo>());
         }
 
-        public BuildPipelineCodes Run(IDependencyInfo dependencyInfo)
+        public static BuildPipelineCodes Run(IDependencyInfo dependencyInfo)
         {
             // Generate the explicit scene to bundle dependency lookup 
             foreach (var scene in dependencyInfo.SceneInfo)

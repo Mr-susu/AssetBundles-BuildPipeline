@@ -8,20 +8,20 @@ using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class StripUnusedSpriteSources : IBuildTask
+    public struct StripUnusedSpriteSources : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IResultInfo), typeof(IDependencyInfo), typeof(IDependencyInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IResultInfo), typeof(IDependencyInfo), typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>());
         }
 
-        protected static Hash128 CalculateInputHash(bool useCache, IDependencyInfo input)
+        static Hash128 CalculateInputHash(bool useCache, IDependencyInfo input)
         {
             if (!useCache)
                 return new Hash128();
@@ -81,7 +81,7 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
-        protected static void SetOutputInformation(Dictionary<ObjectIdentifier, int> spriteSourceRef, IDependencyInfo output)
+        static void SetOutputInformation(Dictionary<ObjectIdentifier, int> spriteSourceRef, IDependencyInfo output)
         {
             foreach (KeyValuePair<ObjectIdentifier, int> source in spriteSourceRef)
             {
@@ -93,7 +93,7 @@ namespace UnityEditor.Build.Tasks
             }
         }
 
-        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref Dictionary<ObjectIdentifier, int> spriteSourceRef)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref Dictionary<ObjectIdentifier, int> spriteSourceRef)
         {
             Dictionary<ObjectIdentifier, int> cachedSpriteSourceRef;
             if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedSpriteSourceRef))
@@ -105,7 +105,7 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected static bool TrySaveToCache(bool useCache, Hash128 hash, Dictionary<ObjectIdentifier, int> spriteSourceRef)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, Dictionary<ObjectIdentifier, int> spriteSourceRef)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, spriteSourceRef))
                 return false;

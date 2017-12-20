@@ -56,14 +56,14 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
-        protected static void SetOutputInformation(string bundleName, WriteResult result, IResultInfo output)
+        static void SetOutputInformation(string bundleName, WriteResult result, IResultInfo output)
         {
             List<WriteResult> results;
             output.BundleResults.GetOrAdd(bundleName, out results);
             results.Add(result);
         }
 
-        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref WriteResult result)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref WriteResult result)
         {
             WriteResult cachedResult;
             if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedResult))
@@ -74,7 +74,7 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected static bool TrySaveToCache(bool useCache, Hash128 hash, WriteResult result)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, WriteResult result)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, result))
                 return false;

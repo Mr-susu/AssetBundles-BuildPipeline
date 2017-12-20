@@ -8,13 +8,13 @@ using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class CalculateAssetDependencyData : IBuildTask
+    public struct CalculateAssetDependencyData : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
@@ -23,7 +23,7 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
-        protected static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
+        static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
         {
             if (!useCache)
                 return new Hash128();
@@ -39,47 +39,46 @@ namespace UnityEditor.Build.Tasks
 
         public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
         {
-            List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidAsset(x.asset)).ToList();
-            foreach (AssetIdentifier assetID in assetIDs)
+            foreach (GUID asset in input.Assets)
             {
                 var assetInfo = new AssetLoadInfo();
-                var assetPath = AssetDatabase.GUIDToAssetPath(assetID.asset.ToString());
+                var assetPath = AssetDatabase.GUIDToAssetPath(asset.ToString());
 
-                Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, asset, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo))
                 {
                     if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", assetPath)))
                         return BuildPipelineCodes.Canceled;
 
-                    SetOutputInformation(assetID, assetInfo, output);
+                    SetOutputInformation(asset, assetInfo, output);
                     continue;
                 }
 
                 if (!tracker.UpdateInfoUnchecked(assetPath))
                     return BuildPipelineCodes.Canceled;
 
-                assetInfo.asset = assetID.asset;
-                assetInfo.address = string.IsNullOrEmpty(assetID.address) ? AssetDatabase.GUIDToAssetPath(assetID.asset.ToString()) : assetID.address;
+                assetInfo.asset = asset;
+                assetInfo.address = input.Addresses[asset];
                 assetInfo.explicitDataLayout = true;
-                assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(assetID.asset, buildParams.BundleSettings.target));
+                assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(asset, buildParams.BundleSettings.target));
                 assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(assetInfo.includedObjects.ToArray(), buildParams.BundleSettings.target, buildParams.BundleSettings.typeDB));
 
-                SetOutputInformation(assetID, assetInfo, output);
+                SetOutputInformation(asset, assetInfo, output);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, assetInfo))
-                    BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", assetID.asset);
+                    BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", AssetDatabase.GUIDToAssetPath(asset.ToString()));
             }
 
             return BuildPipelineCodes.Success;
         }
 
-        protected static void SetOutputInformation(AssetIdentifier assetID, AssetLoadInfo assetInfo, IDependencyInfo output)
+        static void SetOutputInformation(GUID asset, AssetLoadInfo assetInfo, IDependencyInfo output)
         {
             // Add generated asset information to BuildDependencyInfo
-            output.AssetInfo.Add(assetID.asset, assetInfo);
+            output.AssetInfo.Add(asset, assetInfo);
         }
 
-        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref AssetLoadInfo assetInfo)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref AssetLoadInfo assetInfo)
         {
             AssetLoadInfo cachedAssetInfo;
             if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedAssetInfo))
@@ -91,7 +90,7 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo))
                 return false;

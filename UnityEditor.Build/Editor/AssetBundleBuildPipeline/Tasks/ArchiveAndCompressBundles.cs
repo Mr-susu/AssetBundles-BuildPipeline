@@ -9,13 +9,13 @@ using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class ArchiveAndCompressBundles : IBuildTask
+    public struct ArchiveAndCompressBundles : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>(), tracker);
         }
 
-        protected static Hash128 CalculateInputHash(bool useCache, ResourceFile[] resourceFiles, BuildCompression compression)
+        static Hash128 CalculateInputHash(bool useCache, ResourceFile[] resourceFiles, BuildCompression compression)
         {
             if (!useCache)
                 return new Hash128();
@@ -70,7 +70,7 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
-        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref BundleInfo output)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref BundleInfo output)
         {
             BundleInfo cachedInfo;
             if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedInfo))
@@ -81,14 +81,14 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected static bool TrySaveToCache(bool useCache, Hash128 hash, BundleInfo output)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, BundleInfo output)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, output))
                 return false;
             return true;
         }
 
-        protected static void SetOutputInformation(string writePath, string finalPath, string bundleName, BundleInfo bundleInfo, IResultInfo output)
+        static void SetOutputInformation(string writePath, string finalPath, string bundleName, BundleInfo bundleInfo, IResultInfo output)
         {
             if (finalPath != writePath)
             {

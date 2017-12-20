@@ -3,13 +3,13 @@ using UnityEditor.Build.Interfaces;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class PostPackingCallback : IBuildTask
+    public struct PostPackingCallback : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo), typeof(IWriteInfo), typeof(IPackingCallback) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo), typeof(IWriteInfo), typeof(IPackingCallback) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
@@ -17,7 +17,7 @@ namespace UnityEditor.Build.Tasks
                 context.GetContextObject<IWriteInfo>(), context.GetContextObject<IPackingCallback>());
         }
 
-        public BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IPackingCallback output)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo input1, IWriteInfo input2, IPackingCallback output)
         {
             return output.PostPacking(buildParams, input1, input2);
         }

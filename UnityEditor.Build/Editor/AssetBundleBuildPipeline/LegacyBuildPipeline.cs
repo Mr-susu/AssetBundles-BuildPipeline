@@ -1,7 +1,6 @@
 ﻿using UnityEditor.Build.AssetBundle;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Player;
-using UnityEditor.Build.Tasks;
 using UnityEditor.Build.Utilities;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEditor.Experimental.Build.Player;
@@ -16,23 +15,12 @@ namespace UnityEditor.Build
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildInput = BundleBuildInterface.GenerateBuildInput();
-            var buildLayout = new BuildLayout(buildInput);
-            return BuildAssetBundles_Internal(outputPath, buildLayout, assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, new BuildLayout(buildInput), assetBundleOptions, targetPlatform);
         }
 
         public static AssetBundleManifest BuildAssetBundles(string outputPath, AssetBundleBuild[] builds, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
-            var buildLayout = new BuildLayout();
-            var tempBundles = new TempBundleBuild { BundleBuild = builds };
-            if (ConvertAssetBundleBuild.Run(tempBundles, buildLayout) < BuildPipelineCodes.Success)
-                return null;
-
-            return BuildAssetBundles_Internal(outputPath, buildLayout, assetBundleOptions, targetPlatform);
-        }
-
-        internal struct TempBundleBuild : IAssetBundleBuild
-        {
-            public AssetBundleBuild[] BundleBuild { get; set; }
+            return BuildAssetBundles_Internal(outputPath, new BuildLayout(builds), assetBundleOptions, targetPlatform);
         }
 
         internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildLayout buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)

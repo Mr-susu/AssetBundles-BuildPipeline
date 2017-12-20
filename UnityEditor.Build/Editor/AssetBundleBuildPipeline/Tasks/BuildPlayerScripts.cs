@@ -5,13 +5,13 @@ using UnityEditor.Experimental.Build.Player;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class BuildPlayerScripts : IBuildTask
+    public struct BuildPlayerScripts : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {

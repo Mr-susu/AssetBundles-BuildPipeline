@@ -8,49 +8,49 @@ using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class GenerateWriteCommands : IBuildTask
+    public struct GenerateWriteCommands : IBuildTask
     {
         // TODO: Move to utility file
         public const string k_UnityDefaultResourcePath = "library/unity default resources";
 
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IDependencyInfo), typeof(IWriteInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildLayout), typeof(IDependencyInfo), typeof(IWriteInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
-        public IDeterministicIdentifiers PackingMethod { get; protected set; }
+        public IDeterministicIdentifiers PackingMethod { get; private set; }
 
-        public GenerateWriteCommands(IDeterministicIdentifiers packingMethod)
+        public GenerateWriteCommands(IDeterministicIdentifiers packingMethod) : this()
         {
             PackingMethod = packingMethod;
         }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(PackingMethod, context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>());
+            return Run(PackingMethod, context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>());
         }
 
-        public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IDependencyInfo input, IWriteInfo output)
+        public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IBuildLayout buildLayout, IDependencyInfo dependencyInfo, IWriteInfo output)
         {
-            foreach (KeyValuePair<string, List<GUID>> bundle in input.BundleToAssets)
+            foreach (KeyValuePair<string, List<GUID>> bundle in dependencyInfo.BundleToAssets)
             {
                 // TODO: Handle Player Data & Raw write formats
                 if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                 {
-                    var op = CreateAssetBundleWriteOperation(packingMethod, bundle.Key, bundle.Value, input);
+                    var op = CreateAssetBundleWriteOperation(packingMethod, bundle.Key, bundle.Value, dependencyInfo);
                     output.AssetBundles.Add(bundle.Key, op);
                 }
                 else if (ExtensionMethods.ValidSceneBundle(bundle.Value))
                 {
-                    var ops = CreateSceneBundleWriteOperations(packingMethod, bundle.Key, bundle.Value, input);
+                    var ops = CreateSceneBundleWriteOperations(packingMethod, bundle.Key, bundle.Value, buildLayout, dependencyInfo);
                     output.SceneBundles.Add(bundle.Key, ops);
                 }
             }
             return BuildPipelineCodes.Success;
         }
 
-        protected static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo input)
+        static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo input)
         {
             var dependencies = new HashSet<string>();
             var serializeObjects = new HashSet<ObjectIdentifier>();
@@ -98,7 +98,7 @@ namespace UnityEditor.Build.Tasks
             return op;
         }
 
-        protected static List<IWriteOperation> CreateSceneBundleWriteOperations(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> scenes, IDependencyInfo input)
+        static List<IWriteOperation> CreateSceneBundleWriteOperations(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> scenes, IBuildLayout buildLayout, IDependencyInfo input)
         {
             // The 'Folder' we mount asset bundles to is the same as the internal file name of the first file in the archive
             string bundleFileName = packingMethod.GenerateInternalFileName(AssetDatabase.GUIDToAssetPath(scenes[0].ToString()));
@@ -115,7 +115,7 @@ namespace UnityEditor.Build.Tasks
                 sceneLoadInfo.Add(new SceneLoadInfo
                 {
                     asset = scene,
-                    address = input.SceneAddress[scene],
+                    address = buildLayout.Addresses[scene],
                     internalName = packingMethod.GenerateInternalFileName(scenePath)
                 });
 
@@ -136,7 +136,7 @@ namespace UnityEditor.Build.Tasks
             return ops;
         }
 
-        protected static IWriteOperation CreateSceneDataWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, string bundleFileName, GUID scene, IDependencyInfo input)
+        static IWriteOperation CreateSceneDataWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, string bundleFileName, GUID scene, IDependencyInfo input)
         {
             SceneDependencyInfo sceneInfo = input.SceneInfo[scene];
 

@@ -9,13 +9,13 @@ using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
-    public class PreviewSceneDependencyData : IBuildTask
+    public struct PreviewSceneDependencyData : IBuildTask
     {
-        protected const int k_Version = 1;
+        const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        protected static Type[] s_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
-        public Type[] RequiredContextTypes { get { return s_RequiredTypes; } }
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
+        public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
@@ -24,7 +24,7 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
-        protected static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
+        static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
         {
             if (!useCache)
                 return new Hash128();
@@ -38,23 +38,22 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
         {
-            List<AssetIdentifier> assetIDs = input.Layout.definitions.SelectMany(x => x.explicitAssets).Where(x => ExtensionMethods.ValidScene(x.asset)).ToList();
-            foreach (AssetIdentifier assetID in assetIDs)
+            foreach (GUID asset in input.Scenes)
             {
-                string scenePath = AssetDatabase.GUIDToAssetPath(assetID.asset.ToString());
+                string scenePath = AssetDatabase.GUIDToAssetPath(asset.ToString());
 
                 var usageTags = new BuildUsageTagSet();
                 var sceneInfo = new SceneDependencyInfo();
 
-                Hash128 hash = CalculateInputHash(buildParams.UseCache, assetID.asset, buildParams.BundleSettings);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, asset, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref sceneInfo, ref usageTags))
                 {
                     if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", scenePath)))
                         return BuildPipelineCodes.Canceled;
 
-                    SetOutputInformation(assetID, sceneInfo, usageTags, output);
+                    SetOutputInformation(asset, sceneInfo, usageTags, output);
                     continue;
                 }
 
@@ -80,25 +79,24 @@ namespace UnityEditor.Build.Tasks
                 typeof(SceneDependencyInfo).GetField("m_ReferencedObjects", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(boxedInfo, references.ToArray());
                 sceneInfo = (SceneDependencyInfo)boxedInfo;
 
-                SetOutputInformation(assetID, sceneInfo, usageTags, output);
+                SetOutputInformation(asset, sceneInfo, usageTags, output);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, sceneInfo, usageTags))
-                    BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", assetID.asset);
+                    BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", scenePath);
             }
 
             return BuildPipelineCodes.Success;
         }
 
-        protected static void SetOutputInformation(AssetIdentifier assetID, SceneDependencyInfo sceneInfo, BuildUsageTagSet usageTags, IDependencyInfo output)
+        static void SetOutputInformation(GUID asset, SceneDependencyInfo sceneInfo, BuildUsageTagSet usageTags, IDependencyInfo output)
         {
             // Add generated scene information to BuildDependencyInfo
-            output.SceneInfo.Add(assetID.asset, sceneInfo);
-            output.SceneUsage.Add(assetID.asset, usageTags);
-            output.SceneAddress.Add(assetID.asset, assetID.address);
+            output.SceneInfo.Add(asset, sceneInfo);
+            output.SceneUsage.Add(asset, usageTags);
             output.GlobalUsage |= sceneInfo.globalUsage;
         }
 
-        protected static bool TryLoadFromCache(bool useCache, Hash128 hash, ref SceneDependencyInfo sceneInfo, ref BuildUsageTagSet usageTags)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref SceneDependencyInfo sceneInfo, ref BuildUsageTagSet usageTags)
         {
             SceneDependencyInfo cachedSceneInfo;
             BuildUsageTagSet cachedUsageTags;
@@ -112,7 +110,7 @@ namespace UnityEditor.Build.Tasks
             return false;
         }
 
-        protected bool TrySaveToCache(bool useCache, Hash128 hash, SceneDependencyInfo sceneInfo, BuildUsageTagSet usageTags)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, SceneDependencyInfo sceneInfo, BuildUsageTagSet usageTags)
         {
             if (useCache && !BuildCache.SaveCachedResults(hash, sceneInfo) && !BuildCache.SaveCachedResults(hash, usageTags))
                 return false;
