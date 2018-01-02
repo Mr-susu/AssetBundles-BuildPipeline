@@ -33,9 +33,11 @@ namespace UnityEditor.Build.Tasks
 
         public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IBuildLayout buildLayout, IDependencyInfo dependencyInfo, IWriteInfo output)
         {
-            foreach (KeyValuePair<string, List<GUID>> bundle in dependencyInfo.BundleToAssets)
+            if (buildLayout.ExplicitLayout.IsNullOrEmpty())
+                return BuildPipelineCodes.SuccessNotRun;
+
+            foreach (KeyValuePair<string, List<GUID>> bundle in buildLayout.ExplicitLayout)
             {
-                // TODO: Handle Player Data & Raw write formats
                 if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                 {
                     var op = CreateAssetBundleWriteOperation(packingMethod, bundle.Key, bundle.Value, dependencyInfo);
@@ -50,7 +52,7 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
-        static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo input)
+        static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo dependencyInfo)
         {
             var dependencies = new HashSet<string>();
             var serializeObjects = new HashSet<ObjectIdentifier>();
@@ -64,22 +66,22 @@ namespace UnityEditor.Build.Tasks
             foreach (GUID asset in assets)
             {
                 AssetLoadInfo assetInfo;
-                if (!input.AssetInfo.TryGetValue(asset, out assetInfo))
+                if (!dependencyInfo.AssetInfo.TryGetValue(asset, out assetInfo))
                 {
-                    BuildLogger.LogWarning("Could not find info for asset '{0}'.", asset);
+                    BuildLogger.LogWarning("Could not find dependency info for asset '{0}'.", asset);
                     continue;
                 }
 
                 op.info.bundleAssets.Add(assetInfo);
 
-                dependencies.UnionWith(input.AssetToBundles[asset]);
+                dependencies.UnionWith(dependencyInfo.AssetToBundles[asset]);
                 serializeObjects.UnionWith(assetInfo.includedObjects);
                 foreach (ObjectIdentifier reference in assetInfo.referencedObjects)
                 {
                     if (reference.filePath == k_UnityDefaultResourcePath)
                         continue;
 
-                    if (input.AssetInfo.ContainsKey(reference.guid))
+                    if (dependencyInfo.AssetInfo.ContainsKey(reference.guid)) // TODO : objects being pulled in
                         continue;
 
                     serializeObjects.Add(reference);
@@ -98,7 +100,7 @@ namespace UnityEditor.Build.Tasks
             return op;
         }
 
-        static List<IWriteOperation> CreateSceneBundleWriteOperations(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> scenes, IBuildLayout buildLayout, IDependencyInfo input)
+        static List<IWriteOperation> CreateSceneBundleWriteOperations(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> scenes, IBuildLayout buildLayout, IDependencyInfo dependencyInfo)
         {
             // The 'Folder' we mount asset bundles to is the same as the internal file name of the first file in the archive
             string bundleFileName = packingMethod.GenerateInternalFileName(AssetDatabase.GUIDToAssetPath(scenes[0].ToString()));
@@ -108,7 +110,7 @@ namespace UnityEditor.Build.Tasks
             var dependencies = new HashSet<string>();
             foreach (GUID scene in scenes)
             {
-                IWriteOperation op = CreateSceneDataWriteOperation(packingMethod, bundleName, bundleFileName, scene, input);
+                IWriteOperation op = CreateSceneDataWriteOperation(packingMethod, bundleName, bundleFileName, scene, dependencyInfo);
                 ops.Add(op);
 
                 string scenePath = AssetDatabase.GUIDToAssetPath(scene.ToString());
@@ -119,7 +121,7 @@ namespace UnityEditor.Build.Tasks
                     internalName = packingMethod.GenerateInternalFileName(scenePath)
                 });
 
-                dependencies.UnionWith(input.AssetToBundles[scene]);
+                dependencies.UnionWith(dependencyInfo.AssetToBundles[scene]);
             }
             dependencies.Remove(bundleName); // Don't include self as dependency
 
@@ -136,9 +138,9 @@ namespace UnityEditor.Build.Tasks
             return ops;
         }
 
-        static IWriteOperation CreateSceneDataWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, string bundleFileName, GUID scene, IDependencyInfo input)
+        static IWriteOperation CreateSceneDataWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, string bundleFileName, GUID scene, IDependencyInfo dependencyInfo)
         {
-            SceneDependencyInfo sceneInfo = input.SceneInfo[scene];
+            SceneDependencyInfo sceneInfo = dependencyInfo.SceneInfo[scene];
 
             var op = new SceneDataWriteOperation();
             op.scene = sceneInfo.scene;
@@ -147,14 +149,14 @@ namespace UnityEditor.Build.Tasks
             // TODO: This is bundle formatted internal name, we need to rethink this for PlayerData
             op.command.internalName = string.Format("archive:/{0}/{1}", bundleFileName, op.command.fileName);
             // TODO: Rethink the way we do dependencies here, AssetToBundles is for bundles only, won't work for PlayerData or Raw Data.
-            op.command.dependencies = input.AssetToBundles[scene].OrderBy(x => x).Where(x => x != bundleName).Select(x => string.Format("archive:/{0}/{0}", packingMethod.GenerateInternalFileName(x))).ToList();
-            input.SceneUsage.TryGetValue(scene, out op.usageTags);
+            op.command.dependencies = dependencyInfo.AssetToBundles[scene].OrderBy(x => x).Where(x => x != bundleName).Select(x => string.Format("archive:/{0}/{0}", packingMethod.GenerateInternalFileName(x))).ToList();
+            dependencyInfo.SceneUsage.TryGetValue(scene, out op.usageTags);
             op.command.serializeObjects = new List<SerializationInfo>();
             op.preloadInfo.preloadObjects = new List<ObjectIdentifier>();
             long identifier = 2; // Scenes use linear id assignment
             foreach (ObjectIdentifier reference in sceneInfo.referencedObjects)
             {
-                if (!input.AssetInfo.ContainsKey(reference.guid) && reference.filePath != k_UnityDefaultResourcePath)
+                if (!dependencyInfo.AssetInfo.ContainsKey(reference.guid) && reference.filePath != k_UnityDefaultResourcePath)
                 {
                     op.command.serializeObjects.Add(new SerializationInfo
                     {

@@ -11,6 +11,5 @@ namespace UnityEditor.Build.Interfaces
         Dictionary<GUID, BuildUsageTagSet> SceneUsage { get; }
         BuildUsageTagGlobal GlobalUsage { get; set; }
         Dictionary<GUID, List<string>> AssetToBundles { get; }
-        Dictionary<string, List<GUID>> BundleToAssets { get; }
     }
 }

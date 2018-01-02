@@ -132,7 +132,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
                 bundleAssets.Add(assetInfo.asset);
 
                 // Add virtual asset to the list of assets for new bundle
-                output.BundleToAssets.Add(assetInfo.address, bundleAssets);
+                //output.BundleToAssets.Add(assetInfo.address, bundleAssets);
 
                 // Add virtual asset to lookup
                 output.virtualAssets.Add(assetInfo.asset);

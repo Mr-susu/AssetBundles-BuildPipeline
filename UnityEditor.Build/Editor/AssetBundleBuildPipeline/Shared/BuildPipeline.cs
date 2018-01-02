@@ -25,9 +25,12 @@ namespace UnityEditor.Build
         {
             pipeline.Add(new CalculateSceneDependencyData());
             pipeline.Add(new CalculateAssetDependencyData());
+
             pipeline.Add(new GenerateBundleDependencyLookups());
             pipeline.Add(new GenerateAssetToBundleDependency());
             pipeline.Add(new GenerateSceneToBundleDependency());
+
+            pipeline.Add(new CalcualteObjectDependencyHash());
             pipeline.Add(new PostDependencyCallback());
         }
 
@@ -35,7 +38,9 @@ namespace UnityEditor.Build
         {
             pipeline.Add(new ValidateBundleAssignments());
             pipeline.Add(new StripUnusedSpriteSources());
+
             pipeline.Add(new GenerateWriteCommands(packingMethod)); // TODO: maybe split up the generator per command type (Scene, bundle, raw, etc)
+
             pipeline.Add(new PostPackingCallback());
         }
 
@@ -45,6 +50,7 @@ namespace UnityEditor.Build
             pipeline.Add(new WriteSceneBundles());
             pipeline.Add(new ArchiveAndCompressBundles());
             pipeline.Add(new PostWritingCallback());
+            pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
         }
 
         public static IList<IBuildTask> CreateFull()
@@ -57,7 +63,7 @@ namespace UnityEditor.Build
             // Dependency
             AddDependencyTasks(pipeline);
             // Packing
-            AddPackingTasks(pipeline, new PrefabPackedIdentifiers());
+            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
             // Writing
             AddWritingTasks(pipeline);
             return pipeline;
@@ -71,7 +77,7 @@ namespace UnityEditor.Build
             // Dependency
             AddDependencyTasks(pipeline);
             // Packing
-            AddPackingTasks(pipeline, new PrefabPackedIdentifiers());
+            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
             // Writing
             AddWritingTasks(pipeline);
             return pipeline;

@@ -104,18 +104,18 @@ namespace UnityEditor.Build.Tests
                 assetDependencies.Add(fbx.ToString());
             }
 
-            List<GUID> assetsInBundle;
-            buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
-            assetsInBundle.Add(prefab1);
+            //List<GUID> assetsInBundle;
+            //buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
+            //assetsInBundle.Add(prefab1);
 
-            buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
-            assetsInBundle.Add(prefab2);
+            //buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
+            //assetsInBundle.Add(prefab2);
 
-            if (includeFbxInBundle)
-            {
-                buildInfo.BundleToAssets.GetOrAdd(fbx.ToString(), out assetsInBundle);
-                assetsInBundle.Add(fbx);
-            }
+            //if (includeFbxInBundle)
+            //{
+            //    buildInfo.BundleToAssets.GetOrAdd(fbx.ToString(), out assetsInBundle);
+            //    assetsInBundle.Add(fbx);
+            //}
 
             return buildInfo;
         }
@@ -146,15 +146,15 @@ namespace UnityEditor.Build.Tests
             buildInfo.AssetToBundles.GetOrAdd(prefab3, out assetDependencies);
             assetDependencies.Add(prefab3.ToString());
 
-            List<GUID> assetsInBundle;
-            buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
-            assetsInBundle.Add(prefab1);
+            //List<GUID> assetsInBundle;
+            //buildInfo.BundleToAssets.GetOrAdd(prefab1.ToString(), out assetsInBundle);
+            //assetsInBundle.Add(prefab1);
 
-            buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
-            assetsInBundle.Add(prefab2);
+            //buildInfo.BundleToAssets.GetOrAdd(prefab2.ToString(), out assetsInBundle);
+            //assetsInBundle.Add(prefab2);
 
-            buildInfo.BundleToAssets.GetOrAdd(prefab3.ToString(), out assetsInBundle);
-            assetsInBundle.Add(prefab3);
+            //buildInfo.BundleToAssets.GetOrAdd(prefab3.ToString(), out assetsInBundle);
+            //assetsInBundle.Add(prefab3);
 
             return buildInfo;
         }

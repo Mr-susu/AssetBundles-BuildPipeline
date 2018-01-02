@@ -15,7 +15,6 @@ namespace UnityEditor.Build
         public Dictionary<GUID, BuildUsageTagSet> SceneUsage { get; private set; }
         public BuildUsageTagGlobal GlobalUsage { get; set; }
         public Dictionary<GUID, List<string>> AssetToBundles { get; private set; }
-        public Dictionary<string, List<GUID>> BundleToAssets { get; private set; }
 
         // TODO: Move this or something
         // Virtual assets for advanced object deduplication
@@ -30,7 +29,6 @@ namespace UnityEditor.Build
             GlobalUsage = new BuildUsageTagGlobal();
             SceneUsage = new Dictionary<GUID, BuildUsageTagSet>();
             AssetToBundles = new Dictionary<GUID, List<string>>();
-            BundleToAssets = new Dictionary<string, List<GUID>>();
         }
     }
 }

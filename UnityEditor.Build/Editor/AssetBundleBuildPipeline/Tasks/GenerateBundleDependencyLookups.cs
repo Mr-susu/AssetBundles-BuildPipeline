@@ -21,10 +21,7 @@ namespace UnityEditor.Build.Tasks
         public static BuildPipelineCodes Run(IBuildLayout input, IDependencyInfo output)
         {
             if (input.ExplicitLayout.IsNullOrEmpty())
-            {
-                BuildLogger.LogError("Running build pipeline that requires explicit bundle assignments without IBuildLayout.ExplicitLayout populated");
-                return BuildPipelineCodes.Error;
-            }
+                return BuildPipelineCodes.SuccessNotRun;
 
             foreach (KeyValuePair<string, List<GUID>> bundle in input.ExplicitLayout)
             {
@@ -33,11 +30,6 @@ namespace UnityEditor.Build.Tasks
                     // Add the current bundle as dependency[0]
                     var bundles = new List<string> { bundle.Key };
                     output.AssetToBundles.Add(asset, bundles);
-
-                    // Add the current asset to the list of assets for a bundle
-                    List<GUID> bundleAssets;
-                    output.BundleToAssets.GetOrAdd(bundle.Key, out bundleAssets);
-                    bundleAssets.Add(asset);
                 }
             }
             return BuildPipelineCodes.Success;
