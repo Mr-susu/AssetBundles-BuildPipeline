@@ -98,7 +98,6 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
 
                         // Convert Asset Dependency Information to Asset Load Information
                         assetInfo.address = string.IsNullOrEmpty(asset.address) ? AssetDatabase.GUIDToAssetPath(asset.asset.ToString()) : asset.address;
-                        assetInfo.explicitDataLayout = true;
 
                         // Add generated asset information to BuildDependencyInfo
                         output.assetInfo.Add(asset.asset, assetInfo);
