@@ -191,7 +191,6 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             buildInfo.sceneUsageTags.TryGetValue(scene, out op.usageTags);
             op.command.serializeObjects = new List<SerializationInfo>();
             op.preloadInfo.preloadObjects = new List<ObjectIdentifier>();
-            op.preloadInfo.explicitDataLayout = true;
             long identifier = 2; // Scenes use linear id assignment
             foreach (var reference in sceneInfo.referencedObjects)
             {
