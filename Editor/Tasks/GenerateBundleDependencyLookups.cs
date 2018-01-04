@@ -21,7 +21,10 @@ namespace UnityEditor.Build.Tasks
         public static BuildPipelineCodes Run(IBuildLayout input, IDependencyInfo output)
         {
             if (input.ExplicitLayout.IsNullOrEmpty())
-                return BuildPipelineCodes.SuccessNotRun;
+            {
+                BuildLogger.LogError("Running build pipeline that requires explicit bundle assignments without IBuildLayout.ExplicitLayout populated");
+                return BuildPipelineCodes.Error;
+            }
 
             foreach (KeyValuePair<string, List<GUID>> bundle in input.ExplicitLayout)
             {
