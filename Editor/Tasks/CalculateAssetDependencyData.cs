@@ -12,14 +12,14 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IBuildLayout), typeof(IDependencyInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IBuildContent), typeof(IDependencyInfo) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
             IProgressTracker tracker;
             context.TryGetContextObject(out tracker);
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IDependencyInfo>(), tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
         static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
@@ -36,7 +36,7 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildLayout input, IDependencyInfo output, IProgressTracker tracker = null)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildContent input, IDependencyInfo output, IProgressTracker tracker = null)
         {
             foreach (GUID asset in input.Assets)
             {

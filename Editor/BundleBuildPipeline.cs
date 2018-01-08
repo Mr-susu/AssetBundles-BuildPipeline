@@ -54,7 +54,7 @@ namespace UnityEditor.Build.AssetBundle
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
-                    var buildInput = new BuildLayout(input);
+                    var buildInput = new BuildContent(input);
                     var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache);
 
                     var buildContext = new BuildContext(buildInput, buildParams, progressTracker);
@@ -63,7 +63,7 @@ namespace UnityEditor.Build.AssetBundle
                     buildContext.SetContextObject(result);
                     buildContext.SetContextObject(BuildCallbacks);
 
-                    var pipeline = BuildPipeline.CreateBundle();
+                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AutopackReleaseContent);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

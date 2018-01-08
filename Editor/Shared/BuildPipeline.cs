@@ -1,113 +1,129 @@
+using System;
 using System.Collections.Generic;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Tasks;
 
 namespace UnityEditor.Build
 {
+    public enum Pipelines
+    {
+        PlayerScriptsOnly,
+        AssetBundleCompatible,
+        AutopackReleaseContent,
+        //AutopackFastDeployContent,
+    }
+
     public static class BuildPipeline
     {
-        internal static void AddSetupTasks(IList<IBuildTask> pipeline, bool rebuildAtlas = true)
+        public static IList<IBuildTask> CreatePipeline(Pipelines pipeline)
         {
-            pipeline.Add(new ProjectInCleanState());
-            pipeline.Add(new SwitchToBuildPlatform());
-            if (rebuildAtlas)
-                pipeline.Add(new RebuildAtlasCache());
+            switch (pipeline)
+            {
+                case Pipelines.AssetBundleCompatible:
+                    return AssetBundleCompatible();
+                case Pipelines.PlayerScriptsOnly:
+                    return PlayerScriptsOnly();
+                case Pipelines.AutopackReleaseContent:
+                    return AutopackReleaseContent();
+                default:
+                    throw new NotImplementedException(string.Format("Pipeline '{0}' not yet implemented.", pipeline));
+            }
         }
 
-        internal static void AddPlayerScriptsTasks(IList<IBuildTask> pipeline)
+        public static IList<IBuildTask> AutopackReleaseContent()
         {
+            var pipeline = new List<IBuildTask>();
+
+            // Setup
+            pipeline.Add(new ProjectInCleanState());
+            pipeline.Add(new SwitchToBuildPlatform());
+            pipeline.Add(new RebuildAtlasCache());
+
+            // Player Scripts
             pipeline.Add(new BuildPlayerScripts());
             pipeline.Add(new SetBundleSettingsTypeDB());
             pipeline.Add(new PostScriptsCallback());
-        }
 
-        internal static void AddDependencyTasks(IList<IBuildTask> pipeline)
-        {
+            // Dependency
             pipeline.Add(new CalculateSceneDependencyData());
             pipeline.Add(new CalculateAssetDependencyData());
-
-            pipeline.Add(new GenerateBundleDependencyLookups());
-            pipeline.Add(new GenerateAssetToBundleDependency());
-            pipeline.Add(new GenerateSceneToBundleDependency());
-
-            pipeline.Add(new CalcualteObjectDependencyHash());
-            pipeline.Add(new PostDependencyCallback());
-        }
-
-        internal static void AddPackingTasks(IList<IBuildTask> pipeline, IDeterministicIdentifiers packingMethod)
-        {
-            pipeline.Add(new ValidateBundleAssignments());
             pipeline.Add(new StripUnusedSpriteSources());
+            pipeline.Add(new PostDependencyCallback());
 
-            pipeline.Add(new GenerateWriteCommands(packingMethod)); // TODO: maybe split up the generator per command type (Scene, bundle, raw, etc)
-
+            // Packing
+            // TODO: Implement autopacking build tasks
+            pipeline.Add(new CalcualteObjectDependencyHash());
+            //pipeline.Add(new GenerateBundlePacking());
+            //pipeline.Add(new PackAssetBundleReferences());
+            //pipeline.Add(new PackSceneBundleReferences());
+            //pipeline.Add(new GenerateWriteCommands(new PrefabPackedIdentifiers()));
             pipeline.Add(new PostPackingCallback());
-        }
 
-        internal static void AddWritingTasks(IList<IBuildTask> pipeline)
-        {
+            // Writing
+            // TODO: Replace with IBuildTasks for Archive & SerializedFile APIs
             pipeline.Add(new WriteAssetBundles());
             pipeline.Add(new WriteSceneBundles());
             pipeline.Add(new ArchiveAndCompressBundles());
             pipeline.Add(new PostWritingCallback());
+
             pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
-        }
 
-        public static IList<IBuildTask> CreateFull()
-        {
-            var pipeline = new List<IBuildTask>();
-            // Setup
-            AddSetupTasks(pipeline);
-            // Player Scripts
-            AddPlayerScriptsTasks(pipeline);
-            // Dependency
-            AddDependencyTasks(pipeline);
-            // Packing
-            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
-            // Writing
-            AddWritingTasks(pipeline);
             return pipeline;
         }
 
-        public static IList<IBuildTask> CreateBundle()
+        static IList<IBuildTask> PlayerScriptsOnly()
         {
             var pipeline = new List<IBuildTask>();
+
             // Setup
-            AddSetupTasks(pipeline);
-            // Dependency
-            AddDependencyTasks(pipeline);
-            // Packing
-            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
-            // Writing
-            AddWritingTasks(pipeline);
+            pipeline.Add(new ProjectInCleanState());
+            pipeline.Add(new SwitchToBuildPlatform());
+
+            // Player Scripts
+            pipeline.Add(new BuildPlayerScripts());
+            pipeline.Add(new SetBundleSettingsTypeDB());
+            pipeline.Add(new PostScriptsCallback());
+
             return pipeline;
         }
 
-        public static IList<IBuildTask> CreatePlayerScripts()
+        public static IList<IBuildTask> AssetBundleCompatible()
         {
             var pipeline = new List<IBuildTask>();
-            // Setup
-            AddSetupTasks(pipeline, false);
-            // Player Scripts
-            AddPlayerScriptsTasks(pipeline);
-            return pipeline;
-        }
 
-        public static IList<IBuildTask> CreateLegacy()
-        {
-            var pipeline = new List<IBuildTask>();
             // Setup
-            AddSetupTasks(pipeline);
+            pipeline.Add(new ProjectInCleanState());
+            pipeline.Add(new ValidateBundleAssignments());
+            pipeline.Add(new SwitchToBuildPlatform());
+            pipeline.Add(new RebuildAtlasCache());
+
             // Player Scripts
-            AddPlayerScriptsTasks(pipeline);
+            pipeline.Add(new BuildPlayerScripts());
+            pipeline.Add(new SetBundleSettingsTypeDB());
+            pipeline.Add(new PostScriptsCallback());
+
             // Dependency
-            AddDependencyTasks(pipeline);
+            pipeline.Add(new CalculateSceneDependencyData());
+            pipeline.Add(new CalculateAssetDependencyData());
+            pipeline.Add(new StripUnusedSpriteSources());
+            pipeline.Add(new PostDependencyCallback());
+
             // Packing
-            AddPackingTasks(pipeline, new Unity5PackedIdentifiers());
+            pipeline.Add(new GenerateBundlePacking());
+            pipeline.Add(new GenerateBundleCommands());
+            pipeline.Add(new PostPackingCallback());
+
             // Writing
-            AddWritingTasks(pipeline);
+            // TODO: Rewrite the write tasks?
+            pipeline.Add(new WriteAssetBundles());
+            pipeline.Add(new WriteSceneBundles());
+            pipeline.Add(new ArchiveAndCompressBundles());
+            pipeline.Add(new PostWritingCallback());
+
             // Generate manifest files
             // TODO: IMPL manifest generation
+            pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
+
             return pipeline;
         }
     }

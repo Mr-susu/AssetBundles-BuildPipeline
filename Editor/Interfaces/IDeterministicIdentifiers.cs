@@ -2,7 +2,7 @@
 
 namespace UnityEditor.Build.Interfaces
 {
-    public interface IDeterministicIdentifiers
+    public interface IDeterministicIdentifiers : IContextObject
     {
         string GenerateInternalFileName(string name);
         long SerializationIndexFromObjectIdentifier(ObjectIdentifier objectID);

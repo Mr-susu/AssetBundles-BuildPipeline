@@ -209,16 +209,18 @@ namespace UnityEditor.Build
                 using (var buildCleanup = new BuildStateCleanup(true, BundleBuildPipeline.kTempBundleBuildPath))
                 {
                     var buildParams = new BuildParams(scriptSettings, bundleSettings, compression, m_Settings.outputPath, BundleBuildPipeline.kTempBundleBuildPath, m_Settings.useBuildCache);
-                    var buildLayout = new BuildLayout(BundleBuildInterface.GenerateBuildInput());
+                    var buildLayout = new BuildContent(BundleBuildInterface.GenerateBuildInput());
 
                     var buildContext = new BuildContext(buildLayout, buildParams, progressTracker);
                     buildContext.SetContextObject(new BuildDependencyInfo());
+                    buildContext.SetContextObject(new BuildPackingInfo());
                     buildContext.SetContextObject(new BuildWriteInfo());
                     buildContext.SetContextObject(new BuildResultInfo());
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
+                    buildContext.SetContextObject(new Unity5PackedIdentifiers());
 
-                    var pipeline = BuildPipeline.CreateFull();
+                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AssetBundleCompatible);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

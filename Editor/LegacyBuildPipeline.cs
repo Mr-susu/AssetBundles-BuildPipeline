@@ -15,15 +15,15 @@ namespace UnityEditor.Build
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildInput = BundleBuildInterface.GenerateBuildInput();
-            return BuildAssetBundles_Internal(outputPath, new BuildLayout(buildInput), assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, new BuildContent(buildInput), assetBundleOptions, targetPlatform);
         }
 
         public static AssetBundleManifest BuildAssetBundles(string outputPath, AssetBundleBuild[] builds, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
-            return BuildAssetBundles_Internal(outputPath, new BuildLayout(builds), assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, new BuildContent(builds), assetBundleOptions, targetPlatform);
         }
 
-        internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildLayout buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
+        internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildContent buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             BuildCompression compression = BuildCompression.DefaultLZMA;
             if ((assetBundleOptions & BuildAssetBundleOptions.ChunkBasedCompression) != 0)
@@ -49,8 +49,9 @@ namespace UnityEditor.Build
                     buildContext.SetContextObject(new BuildResultInfo());
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
+                    buildContext.SetContextObject(new Unity5PackedIdentifiers());
 
-                    var pipeline = BuildPipeline.CreateLegacy();
+                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AssetBundleCompatible);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

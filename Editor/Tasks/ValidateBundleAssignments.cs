@@ -25,7 +25,6 @@ namespace UnityEditor.Build.Tasks
 
             foreach (KeyValuePair<string, List<GUID>> bundle in input.ExplicitLayout)
             {
-                // TODO: Handle Player Data & Raw write formats
                 if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                     continue;
 

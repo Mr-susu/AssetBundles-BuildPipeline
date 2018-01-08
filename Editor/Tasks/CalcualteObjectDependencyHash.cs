@@ -13,15 +13,15 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IDependencyInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IDependencyInfo), typeof(IPackingInfo) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IDependencyInfo>());
+            return Run(context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IPackingInfo>());
         }
 
-        public static BuildPipelineCodes Run(IDependencyInfo dependencyInfo)
+        public static BuildPipelineCodes Run(IDependencyInfo dependencyInfo, IPackingInfo packingInfo)
         {
             // Object usage
             var objectUsage = new Dictionary<ObjectIdentifier, HashSet<string>>();
@@ -38,9 +38,6 @@ namespace UnityEditor.Build.Tasks
                 AddObjectUsage(scenePair.Key.ToString(), scenePair.Value.referencedObjects, objectUsage);
             }
 
-            // Optimal Layout
-            var hashToObjectIDs = new Dictionary<string, List<ObjectIdentifier>>();
-
             // Calculate the optimal layout based on object usage
             foreach (var usagePair in objectUsage)
             {
@@ -48,22 +45,17 @@ namespace UnityEditor.Build.Tasks
                 Hash128 usageHash = HashingMethods.CalculateMD5Hash(usageList);
 
                 List<ObjectIdentifier> objects;
-                hashToObjectIDs.GetOrAdd(usageHash.ToString(), out objects);
+                packingInfo.FileToObjects.GetOrAdd(usageHash.ToString(), out objects);
                 objects.Add(usagePair.Key);
             }
 
-            BuildLogger.LogWarning(hashToObjectIDs.Count);
-            LogContextToFile.Run(hashToObjectIDs, @"D:\Projects\BuildHLAPI\Builds\ObjectLayout.json");
-
-            // TODO: Create Commands based on hashToObjectIDs
-
-            // File Dependencies
-            var guidToHashes = new Dictionary<string, List<string>>();
+            BuildLogger.LogWarning(packingInfo.FileToObjects.Count);
+            LogContextToFile.Run(packingInfo.FileToObjects, @"D:\Projects\BuildHLAPI\Builds\ObjectLayout.json");
 
             foreach (var assetPair in dependencyInfo.AssetInfo)
             {
                 List<string> hashes;
-                guidToHashes.GetOrAdd(assetPair.Key.ToString(), out hashes);
+                packingInfo.AssetToFiles.GetOrAdd(assetPair.Key, out hashes);
 
                 AddObjectDependencies(objectUsage, assetPair.Value.includedObjects, hashes);
                 AddObjectDependencies(objectUsage, assetPair.Value.referencedObjects, hashes);
@@ -72,16 +64,14 @@ namespace UnityEditor.Build.Tasks
             foreach (var scenePair in dependencyInfo.SceneInfo)
             {
                 List<string> hashes;
-                guidToHashes.GetOrAdd(scenePair.Key.ToString(), out hashes);
+                packingInfo.AssetToFiles.GetOrAdd(scenePair.Key, out hashes);
                 hashes.Add(scenePair.Key.ToString());
 
                 AddObjectDependencies(objectUsage, scenePair.Value.referencedObjects, hashes);
             }
 
-            BuildLogger.LogWarning(guidToHashes.Count);
-            LogContextToFile.Run(guidToHashes, @"D:\Projects\BuildHLAPI\Builds\AssetDependencies.json");
-
-            // TODO: Created loading dependencies based on guidToHashes
+            BuildLogger.LogWarning(packingInfo.AssetToFiles.Count);
+            LogContextToFile.Run(packingInfo.AssetToFiles, @"D:\Projects\BuildHLAPI\Builds\AssetDependencies.json");
 
             return BuildPipelineCodes.Success;
         }
