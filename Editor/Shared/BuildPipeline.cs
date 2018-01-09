@@ -52,19 +52,15 @@ namespace UnityEditor.Build
 
             // Packing
             // TODO: Implement autopacking build tasks
-            pipeline.Add(new CalcualteObjectDependencyHash());
-            //pipeline.Add(new GenerateBundlePacking());
-            //pipeline.Add(new PackAssetBundleReferences());
-            //pipeline.Add(new PackSceneBundleReferences());
-            //pipeline.Add(new GenerateWriteCommands(new PrefabPackedIdentifiers()));
+            pipeline.Add(new GenerateReleaseAutoPacking());
             pipeline.Add(new PostPackingCallback());
 
             // Writing
             // TODO: Replace with IBuildTasks for Archive & SerializedFile APIs
-            pipeline.Add(new WriteAssetBundles());
-            pipeline.Add(new WriteSceneBundles());
-            pipeline.Add(new ArchiveAndCompressBundles());
-            pipeline.Add(new PostWritingCallback());
+            //pipeline.Add(new WriteAssetBundles());
+            //pipeline.Add(new WriteSceneBundles());
+            //pipeline.Add(new ArchiveAndCompressBundles());
+            //pipeline.Add(new PostWritingCallback());
 
             pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
 

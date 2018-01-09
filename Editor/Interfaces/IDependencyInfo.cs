@@ -8,7 +8,10 @@ namespace UnityEditor.Build.Interfaces
     {
         Dictionary<GUID, AssetLoadInfo> AssetInfo { get; }
         Dictionary<GUID, SceneDependencyInfo> SceneInfo { get; }
+        // NOTES: Only used in Asset Bundle Compatible pipeline
         Dictionary<GUID, BuildUsageTagSet> SceneUsage { get; }
         BuildUsageTagGlobal GlobalUsage { get; set; }
+        // NOTES: Only used in Auto-Packing pipelines
+        BuildUsageTagSet BuildUsage { get; }
     }
 }

@@ -42,14 +42,15 @@ namespace UnityEditor.Build.Tasks
             {
                 var assetInfo = new AssetLoadInfo();
                 var assetPath = AssetDatabase.GUIDToAssetPath(asset.ToString());
+                var usageTags = new BuildUsageTagSet();
 
                 Hash128 hash = CalculateInputHash(buildParams.UseCache, asset, buildParams.BundleSettings);
-                if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo))
+                if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo, ref usageTags))
                 {
                     if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", assetPath)))
                         return BuildPipelineCodes.Canceled;
 
-                    SetOutputInformation(asset, assetInfo, output);
+                    SetOutputInformation(asset, assetInfo, usageTags, output);
                     continue;
                 }
 
@@ -59,38 +60,43 @@ namespace UnityEditor.Build.Tasks
                 assetInfo.asset = asset;
                 assetInfo.address = input.Addresses[asset];
                 assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(asset, buildParams.BundleSettings.target));
-                assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(assetInfo.includedObjects.ToArray(), buildParams.BundleSettings.target, buildParams.BundleSettings.typeDB));
+                var includedObjects = assetInfo.includedObjects.ToArray();
+                assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(includedObjects, buildParams.BundleSettings.target, buildParams.BundleSettings.typeDB));
+                BundleBuildInterface.CalculateBuildUsageTags(assetInfo.referencedObjects.ToArray(), includedObjects, output.GlobalUsage, usageTags);
 
-                SetOutputInformation(asset, assetInfo, output);
+                SetOutputInformation(asset, assetInfo, usageTags, output);
 
-                if (!TrySaveToCache(buildParams.UseCache, hash, assetInfo))
+                if (!TrySaveToCache(buildParams.UseCache, hash, assetInfo, usageTags))
                     BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", AssetDatabase.GUIDToAssetPath(asset.ToString()));
             }
 
             return BuildPipelineCodes.Success;
         }
 
-        static void SetOutputInformation(GUID asset, AssetLoadInfo assetInfo, IDependencyInfo output)
+        static void SetOutputInformation(GUID asset, AssetLoadInfo assetInfo, BuildUsageTagSet usageTags, IDependencyInfo output)
         {
             // Add generated asset information to BuildDependencyInfo
             output.AssetInfo.Add(asset, assetInfo);
+            output.BuildUsage.UnionWith(usageTags);
         }
 
-        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref AssetLoadInfo assetInfo)
+        static bool TryLoadFromCache(bool useCache, Hash128 hash, ref AssetLoadInfo assetInfo, ref BuildUsageTagSet usageTags)
         {
             AssetLoadInfo cachedAssetInfo;
-            if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedAssetInfo))
+            BuildUsageTagSet cachedAssetUsage;
+            if (useCache && BuildCache.TryLoadCachedResults(hash, out cachedAssetInfo) && BuildCache.TryLoadCachedResults(hash, out cachedAssetUsage))
             {
                 assetInfo = cachedAssetInfo;
+                usageTags = cachedAssetUsage;
                 return true;
             }
 
             return false;
         }
 
-        static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo)
+        static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo, BuildUsageTagSet usageTags)
         {
-            if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo))
+            if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo) && !BuildCache.SaveCachedResults(hash, usageTags))
                 return false;
             return true;
         }

@@ -15,7 +15,7 @@ namespace UnityEditor.Build
 
         public Dictionary<GUID, string> Addresses { get; private set; }
 
-        // TODO: Unused in Auto-Packing pipeline
+        // NOTES: Only used in Asset Bundle Compatible pipeline
         public Dictionary<string, List<GUID>> ExplicitLayout { get; private set; }
 
         public BuildContent(BuildInput bundleInput)

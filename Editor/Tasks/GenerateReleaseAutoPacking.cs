@@ -8,8 +8,11 @@ using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
-    public struct CalcualteObjectDependencyHash : IBuildTask
+    public struct GenerateReleaseAutoPacking : IBuildTask
     {
+        // TODO: Move to utility file
+        public const string k_UnityDefaultResourcePath = "library/unity default resources";
+
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
@@ -80,6 +83,9 @@ namespace UnityEditor.Build.Tasks
         {
             foreach (ObjectIdentifier objectID in objectIDs)
             {
+                if (objectID.filePath == k_UnityDefaultResourcePath)    // TODO: Fix this so we can pull in these objects
+                    continue;
+
                 HashSet<string> usage;
                 outObjectUsage.GetOrAdd(objectID, out usage);
                 usage.Add(source);
@@ -90,6 +96,9 @@ namespace UnityEditor.Build.Tasks
         {
             foreach (var objectID in objectIDs)
             {
+                if (objectID.filePath == k_UnityDefaultResourcePath)    // TODO: Fix this so we can pull in these objects
+                    continue;
+
                 var usageList = objectUsage[objectID].ToList();
                 Hash128 usageHash = HashingMethods.CalculateMD5Hash(usageList);
                 if (!outDependencies.Contains(usageHash.ToString()))

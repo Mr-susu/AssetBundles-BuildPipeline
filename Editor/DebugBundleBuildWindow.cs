@@ -19,6 +19,7 @@ namespace UnityEditor.Build
             public BuildTarget buildTarget;
             public BuildTargetGroup buildGroup;
             public CompressionType compressionType;
+            public Pipelines packPipeline;
             public bool useBuildCache;
             public bool useExperimentalPipeline;
             public string outputPath;
@@ -31,6 +32,7 @@ namespace UnityEditor.Build
         SerializedProperty m_TargetProp;
         SerializedProperty m_GroupProp;
         SerializedProperty m_CompressionProp;
+        SerializedProperty m_PackPipeline;
         SerializedProperty m_CacheProp;
         SerializedProperty m_ExpProp;
         SerializedProperty m_OutputProp;
@@ -43,6 +45,7 @@ namespace UnityEditor.Build
             var window = GetWindow<DebugBundleBuildWindow>("Debug Build");
             window.m_Settings.buildTarget = EditorUserBuildSettings.activeBuildTarget;
             window.m_Settings.buildGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
+            window.m_Settings.packPipeline = Pipelines.AssetBundleCompatible;
             window.m_Settings.useExperimentalPipeline = true;
 
             window.Show();
@@ -54,6 +57,7 @@ namespace UnityEditor.Build
             m_TargetProp = m_SerializedObject.FindProperty("m_Settings.buildTarget");
             m_GroupProp = m_SerializedObject.FindProperty("m_Settings.buildGroup");
             m_CompressionProp = m_SerializedObject.FindProperty("m_Settings.compressionType");
+            m_PackPipeline = m_SerializedObject.FindProperty("m_Settings.packPipeline");
             m_CacheProp = m_SerializedObject.FindProperty("m_Settings.useBuildCache");
             m_ExpProp = m_SerializedObject.FindProperty("m_Settings.useExperimentalPipeline");
             m_OutputProp = m_SerializedObject.FindProperty("m_Settings.outputPath");
@@ -66,6 +70,7 @@ namespace UnityEditor.Build
             EditorGUILayout.PropertyField(m_TargetProp);
             EditorGUILayout.PropertyField(m_GroupProp);
             EditorGUILayout.PropertyField(m_CompressionProp);
+            EditorGUILayout.PropertyField(m_PackPipeline);
             EditorGUILayout.PropertyField(m_CacheProp);
             EditorGUILayout.PropertyField(m_ExpProp);
 
@@ -220,7 +225,7 @@ namespace UnityEditor.Build
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(new Unity5PackedIdentifiers());
 
-                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AssetBundleCompatible);
+                    var pipeline = BuildPipeline.CreatePipeline(m_Settings.packPipeline);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

@@ -16,12 +16,13 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IDeterministicIdentifiers), typeof(IBuildLayout), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IDependencyInfo), typeof(IWriteInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IDeterministicIdentifiers), typeof(IBuildLayout), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IPackingInfo), typeof(IWriteInfo) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IDeterministicIdentifiers>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IPackingInfo>(), context.GetContextObject<IWriteInfo>());
+            return Run(context.GetContextObject<IDeterministicIdentifiers>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IBuildContent>(),
+                context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IPackingInfo>(), context.GetContextObject<IWriteInfo>());
         }
 
         public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IBuildLayout buildLayout, IBuildContent buildContent, IDependencyInfo dependencyInfo, IPackingInfo packingInfo, IWriteInfo output)
