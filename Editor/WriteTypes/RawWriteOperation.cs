@@ -48,7 +48,15 @@ namespace UnityEditor.Build.WriteTypes
 
         public virtual WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage)
         {
-            return BundleBuildInterface.WriteSerializedFile(outputFolder, command, dependencies, settings, globalUsage, buildUsage);
+            var references = new BuildReferenceMap();
+            references.AddMappings(command.internalName, command.serializeObjects.ToArray());
+            if (!dependencies.IsNullOrEmpty())
+            {
+                foreach (var dependency in dependencies)
+                    references.AddMappings(dependency.internalName, dependency.serializeObjects.ToArray());
+            }
+
+            return BundleBuildInterface.WriteSerializedFile(outputFolder, command, settings, globalUsage, buildUsage, references);
         }
     }
 }
