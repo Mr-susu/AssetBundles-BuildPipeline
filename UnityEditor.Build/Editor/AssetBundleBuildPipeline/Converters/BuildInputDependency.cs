@@ -5,7 +5,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
-    public class BuildInputDependency : ADataConverter<BuildInput, BuildSettings, BuildDependencyInformation>
+    public class BuildInputDependency : ADataConverter<BuildInput, BuildSettings, BuildDependencyInfo>
     {
         public override uint Version { get { return 1; } }
 
@@ -24,6 +24,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             }
         }
 
+
         public BuildInputDependency(bool useCache, IProgressTracker progressTracker) : base(useCache, progressTracker)
         {
             m_AssetDependency.UseCache = UseCache;
@@ -33,11 +34,11 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
         private AssetDependency m_AssetDependency = new AssetDependency(true, null);
         private SceneDependency m_SceneDependency = new SceneDependency(true, null);
 
-        public override BuildPipelineCodes Convert(BuildInput input, BuildSettings settings, out BuildDependencyInformation output)
+        public override BuildPipelineCodes Convert(BuildInput input, BuildSettings settings, out BuildDependencyInfo output)
         {
             StartProgressBar(input);
 
-            output = new BuildDependencyInformation();
+            output = new BuildDependencyInfo();
             foreach (var bundle in input.definitions)
             {
                 foreach (var asset in bundle.explicitAssets)
@@ -51,26 +52,22 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
                         }
 
                         // Get Scene Dependency Information
-                        SceneLoadInfo sceneInfo;
-                        BuildPipelineCodes errorCode = m_SceneDependency.Convert(asset.asset, settings, out sceneInfo);
+                        SceneDependencyInfo sceneInfo;
+                        BuildUsageTagSet usageTags = new BuildUsageTagSet();
+                        BuildPipelineCodes errorCode = m_SceneDependency.Convert(asset.asset, settings, usageTags, out sceneInfo);
                         if (errorCode < BuildPipelineCodes.Success)
                         {
                             EndProgressBar();
                             return errorCode;
                         }
 
-                        // Convert Scene Dependency Information to Asset Load Information
-                        var assetInfo = new AssetLoadInfo();
-                        assetInfo.asset = asset.asset;
-                        assetInfo.address = string.IsNullOrEmpty(asset.address) ? AssetDatabase.GUIDToAssetPath(asset.asset.ToString()) : asset.address;
-                        assetInfo.processedScene = sceneInfo.processedScene;
-                        assetInfo.includedObjects = new List<ObjectIdentifier>();
-                        assetInfo.referencedObjects = sceneInfo.referencedObjects.ToList();
+                        // Add generated scene information to BuildDependencyInfo
+                        output.sceneInfo.Add(asset.asset, sceneInfo);
+                        output.sceneUsageTags.Add(asset.asset, usageTags);
+                        output.sceneAddress.Add(asset.asset, asset.address);
 
-                        // Add generated scene information to BuildDependencyInformation
-                        output.sceneResourceFiles.Add(asset.asset, sceneInfo.resourceFiles.ToArray());
-                        output.sceneUsageTags.Add(asset.asset, sceneInfo.globalUsage);
-                        output.assetLoadInfo.Add(asset.asset, assetInfo);
+                        // Add usage tags to BuildDependencyInfo
+                        output.buildGlobalUsage |= sceneInfo.globalUsage;
 
                         // Add the current bundle as dependency[0]
                         List<string> bundles = new List<string>();
@@ -102,8 +99,8 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
                         // Convert Asset Dependency Information to Asset Load Information
                         assetInfo.address = string.IsNullOrEmpty(asset.address) ? AssetDatabase.GUIDToAssetPath(asset.asset.ToString()) : asset.address;
 
-                        // Add generated scene information to BuildDependencyInformation
-                        output.assetLoadInfo.Add(asset.asset, assetInfo);
+                        // Add generated asset information to BuildDependencyInfo
+                        output.assetInfo.Add(asset.asset, assetInfo);
 
                         // Add the current bundle as dependency[0]
                         List<string> bundles = new List<string>();
@@ -133,10 +130,28 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             }
 
             // Generate the explicit asset to bundle dependency lookup
-            foreach (var asset in output.assetLoadInfo.Values)
+            foreach (var asset in output.assetInfo.Values)
             {
                 var assetBundles = output.assetToBundles[asset.asset];
                 foreach (var reference in asset.referencedObjects)
+                {
+                    List<string> refBundles;
+                    if (!output.assetToBundles.TryGetValue(reference.guid, out refBundles))
+                        continue;
+
+                    var dependency = refBundles[0];
+                    if (assetBundles.Contains(dependency))
+                        continue;
+
+                    assetBundles.Add(dependency);
+                }
+            }
+
+            // Generate the explicit scene to bundle dependency lookup
+            foreach (var scene in output.sceneInfo)
+            {
+                var assetBundles = output.assetToBundles[scene.Key];
+                foreach (var reference in scene.Value.referencedObjects)
                 {
                     List<string> refBundles;
                     if (!output.assetToBundles.TryGetValue(reference.guid, out refBundles))

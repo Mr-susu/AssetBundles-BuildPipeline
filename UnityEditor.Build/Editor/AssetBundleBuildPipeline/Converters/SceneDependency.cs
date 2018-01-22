@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace UnityEditor.Build.AssetBundle.DataConverters
 {
-    public class SceneDependency : ADataConverter<GUID, BuildSettings, SceneLoadInfo>
+    public class SceneDependency : ADataConverter<GUID, BuildSettings, BuildUsageTagSet, SceneDependencyInfo>
     {
         public override uint Version { get { return 1; } }
 
@@ -31,7 +31,7 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             var dependencyHashes = new string[dependencies.Length];
             for (var i = 0; i < dependencies.Length; ++i)
                 dependencyHashes[i] = AssetDatabase.GetAssetDependencyHash(dependencies[i]).ToString();
-            
+
             return HashingMethods.CalculateMD5Hash(Version, assetHash, dependencyHashes, settings);
         }
 
@@ -44,12 +44,12 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             return path;
         }
 
-        public override BuildPipelineCodes Convert(GUID scene, BuildSettings settings, out SceneLoadInfo output)
+        public override BuildPipelineCodes Convert(GUID scene, BuildSettings settings, BuildUsageTagSet usageSet, out SceneDependencyInfo output)
         {
             StartProgressBar("Calculating Scene Dependencies", 1);
             if (!ValidScene(scene))
             {
-                output = new SceneLoadInfo();
+                output = new SceneDependencyInfo();
                 EndProgressBar();
                 return BuildPipelineCodes.Error;
             }
@@ -57,22 +57,22 @@ namespace UnityEditor.Build.AssetBundle.DataConverters
             var scenePath = AssetDatabase.GUIDToAssetPath(scene.ToString());
             if (!UpdateProgressBar(scenePath))
             {
-                output = new SceneLoadInfo();
+                output = new SceneDependencyInfo();
                 EndProgressBar();
                 return BuildPipelineCodes.Canceled;
             }
 
             Hash128 hash = CalculateInputHash(scene, settings);
-            if (UseCache && BuildCache.TryLoadCachedResults(hash, out output))
+            if (UseCache && BuildCache.TryLoadCachedResults(hash, out output) && BuildCache.TryLoadCachedResults(hash, out usageSet))
             {
                 if (!EndProgressBar())
                     return BuildPipelineCodes.Canceled;
                 return BuildPipelineCodes.SuccessCached;
             }
 
-            output = BundleBuildInterface.PrepareScene(scenePath, settings, GetBuildPath(hash));
+            output = BundleBuildInterface.PrepareScene(scenePath, settings, usageSet, GetBuildPath(hash));
 
-            if (UseCache && !BuildCache.SaveCachedResults(hash, output))
+            if (UseCache && !BuildCache.SaveCachedResults(hash, output) && !BuildCache.SaveCachedResults(hash, usageSet))
                 BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", scene);
 
             if (!EndProgressBar())
