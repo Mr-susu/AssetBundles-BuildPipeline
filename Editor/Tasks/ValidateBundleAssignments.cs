@@ -10,15 +10,15 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IBuildLayout) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBundleLayout) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBuildLayout>());
+            return Run(context.GetContextObject<IBundleLayout>());
         }
 
-        public static BuildPipelineCodes Run(IBuildLayout input)
+        public static BuildPipelineCodes Run(IBundleLayout input)
         {
             if (input.ExplicitLayout.IsNullOrEmpty())
                 return BuildPipelineCodes.Success;

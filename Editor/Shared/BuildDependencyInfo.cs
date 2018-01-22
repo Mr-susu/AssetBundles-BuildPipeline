@@ -10,20 +10,17 @@ namespace UnityEditor.Build
     public class BuildDependencyInfo : IDependencyInfo
     {
         public Dictionary<GUID, AssetLoadInfo> AssetInfo { get; private set; }
+        public Dictionary<GUID, BuildUsageTagSet> AssetUsage { get; private set; }
+
         public Dictionary<GUID, SceneDependencyInfo> SceneInfo { get; private set; }
-        // NOTES: Only used in Asset Bundle Compatible pipeline
         public Dictionary<GUID, BuildUsageTagSet> SceneUsage { get; private set; }
-        public BuildUsageTagGlobal GlobalUsage { get; set; }
-        // Notes: Only used in Auto-Packing pipelines
-        public BuildUsageTagSet BuildUsage { get; private set; }
 
         public BuildDependencyInfo()
         {
             AssetInfo = new Dictionary<GUID, AssetLoadInfo>();
+            AssetUsage = new Dictionary<GUID, BuildUsageTagSet>();
             SceneInfo = new Dictionary<GUID, SceneDependencyInfo>();
-            GlobalUsage = new BuildUsageTagGlobal();
             SceneUsage = new Dictionary<GUID, BuildUsageTagSet>();
-            BuildUsage = new BuildUsageTagSet();
         }
     }
 }

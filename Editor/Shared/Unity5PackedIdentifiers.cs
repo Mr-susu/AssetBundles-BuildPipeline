@@ -6,7 +6,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build
 {
-    class Unity5PackedIdentifiers : IDeterministicIdentifiers
+    public struct Unity5PackedIdentifiers : IDeterministicIdentifiers
     {
         public string GenerateInternalFileName(string name)
         {

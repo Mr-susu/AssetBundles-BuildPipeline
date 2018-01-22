@@ -14,14 +14,14 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IResultInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IBundleWriteInfo), typeof(IBundleResults) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
             IProgressTracker tracker;
             context.TryGetContextObject(out tracker);
-            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IResultInfo>(), tracker);
+            return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBundleWriteInfo>(), context.GetContextObject<IBundleResults>(), tracker);
         }
 
         static Hash128 CalculateInputHash(bool useCache, ResourceFile[] resourceFiles, BuildCompression compression)
@@ -35,9 +35,18 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, fileHashes, compression);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IResultInfo resultInfo, IProgressTracker tracker = null)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBundleWriteInfo writeInfo, IBundleResults resultInfo, IProgressTracker tracker = null)
         {
-            foreach (KeyValuePair<string, List<WriteResult>> bundle in resultInfo.BundleResults)
+            Dictionary<string, List<WriteResult>> bundleToResults = new Dictionary<string, List<WriteResult>>();
+            foreach (var result in resultInfo.WriteResults)
+            {
+                var bundle = writeInfo.FileToBundle[result.Key];
+                List<WriteResult> results;
+                bundleToResults.GetOrAdd(bundle, out results);
+                results.Add(result.Value);
+            }
+
+            foreach (KeyValuePair<string, List<WriteResult>> bundle in bundleToResults)
             {
                 ResourceFile[] resourceFiles = bundle.Value.SelectMany(x => x.resourceFiles).ToArray();
                 Hash128 hash = CalculateInputHash(buildParams.UseCache, resourceFiles, buildParams.BundleCompression);
@@ -88,7 +97,7 @@ namespace UnityEditor.Build.Tasks
             return true;
         }
 
-        static void SetOutputInformation(string writePath, string finalPath, string bundleName, BundleInfo bundleInfo, IResultInfo output)
+        static void SetOutputInformation(string writePath, string finalPath, string bundleName, BundleInfo bundleInfo, IBundleResults output)
         {
             if (finalPath != writePath)
             {

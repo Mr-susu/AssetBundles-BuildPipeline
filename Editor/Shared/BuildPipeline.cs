@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Assets.UnityPackages.BuildPipeline.Editor.Tasks;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Tasks;
 
@@ -106,13 +107,12 @@ namespace UnityEditor.Build
 
             // Packing
             pipeline.Add(new GenerateBundlePacking());
+            pipeline.Add(new GenerateBundleMaps());
             pipeline.Add(new GenerateBundleCommands());
             pipeline.Add(new PostPackingCallback());
 
             // Writing
-            // TODO: Rewrite the write tasks?
-            pipeline.Add(new WriteAssetBundles());
-            pipeline.Add(new WriteSceneBundles());
+            pipeline.Add(new WriteSerializedFiles());
             pipeline.Add(new ArchiveAndCompressBundles());
             pipeline.Add(new PostWritingCallback());
 

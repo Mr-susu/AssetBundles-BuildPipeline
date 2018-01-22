@@ -6,12 +6,12 @@ namespace UnityEditor.Build.WriteTypes
 {
     public interface IWriteOperation
     {
-        WriteCommand command { get; }
+        WriteCommand command { get; set; }
 
-        List<WriteCommand> CalculateForwardDependencies(List<WriteCommand> allCommands);
+        BuildUsageTagSet usageSet { get; set; }
 
-        List<WriteCommand> CalculateReverseDependencies(List<WriteCommand> allCommands);
+        BuildReferenceMap referenceMap { get; set; }
 
-        WriteResult Write(string outputFolder, List<WriteCommand> dependencies, BuildSettings settings, BuildUsageTagGlobal globalUsage, BuildUsageTagSet buildUsage);
+        WriteResult Write(string outputFolder, BuildSettings settings, BuildUsageTagGlobal globalUsage);
     }
 }

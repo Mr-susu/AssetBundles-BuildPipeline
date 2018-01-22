@@ -214,11 +214,10 @@ namespace UnityEditor.Build
                 using (var buildCleanup = new BuildStateCleanup(true, BundleBuildPipeline.kTempBundleBuildPath))
                 {
                     var buildParams = new BuildParams(scriptSettings, bundleSettings, compression, m_Settings.outputPath, BundleBuildPipeline.kTempBundleBuildPath, m_Settings.useBuildCache);
-                    var buildLayout = new BuildContent(BundleBuildInterface.GenerateBuildInput());
+                    var buildLayout = new BundleContent(BundleBuildInterface.GenerateBuildInput());
 
                     var buildContext = new BuildContext(buildLayout, buildParams, progressTracker);
                     buildContext.SetContextObject(new BuildDependencyInfo());
-                    buildContext.SetContextObject(new BuildPackingInfo());
                     buildContext.SetContextObject(new BuildWriteInfo());
                     buildContext.SetContextObject(new BuildResultInfo());
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);

@@ -7,7 +7,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 namespace UnityEditor.Build
 {
     [Serializable]
-    public class BuildContent : IBuildContent, IBuildLayout
+    public class BundleContent : IBuildContent, IBundleLayout
     {
         public List<GUID> Assets { get; private set; }
 
@@ -18,7 +18,7 @@ namespace UnityEditor.Build
         // NOTES: Only used in Asset Bundle Compatible pipeline
         public Dictionary<string, List<GUID>> ExplicitLayout { get; private set; }
 
-        public BuildContent(BuildInput bundleInput)
+        public BundleContent(BuildInput bundleInput)
         {
             Assets = new List<GUID>();
             Scenes = new List<GUID>();
@@ -43,7 +43,7 @@ namespace UnityEditor.Build
             }
         }
 
-        public BuildContent(IEnumerable<GUID> assets)
+        public BundleContent(IEnumerable<GUID> assets)
         {
             Assets = new List<GUID>();
             Scenes = new List<GUID>();
@@ -61,7 +61,7 @@ namespace UnityEditor.Build
             }
         }
 
-        public BuildContent(IEnumerable<AssetBundleBuild> bundleBuilds)
+        public BundleContent(IEnumerable<AssetBundleBuild> bundleBuilds)
         {
             Assets = new List<GUID>();
             Scenes = new List<GUID>();

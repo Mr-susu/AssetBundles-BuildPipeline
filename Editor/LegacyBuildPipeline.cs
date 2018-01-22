@@ -15,12 +15,12 @@ namespace UnityEditor.Build
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             var buildInput = BundleBuildInterface.GenerateBuildInput();
-            return BuildAssetBundles_Internal(outputPath, new BuildContent(buildInput), assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, new BundleContent(buildInput), assetBundleOptions, targetPlatform);
         }
 
         public static AssetBundleManifest BuildAssetBundles(string outputPath, AssetBundleBuild[] builds, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
-            return BuildAssetBundles_Internal(outputPath, new BuildContent(builds), assetBundleOptions, targetPlatform);
+            return BuildAssetBundles_Internal(outputPath, new BundleContent(builds), assetBundleOptions, targetPlatform);
         }
 
         internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildContent buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)

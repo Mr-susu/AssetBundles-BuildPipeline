@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace UnityEditor.Build
 {
-    class PrefabPackedIdentifiers : IDeterministicIdentifiers
+    public struct PrefabPackedIdentifiers : IDeterministicIdentifiers
     {
         public string GenerateInternalFileName(string name)
         {

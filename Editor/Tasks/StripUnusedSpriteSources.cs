@@ -13,7 +13,7 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IResultInfo), typeof(IDependencyInfo), typeof(IDependencyInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBuildParams), typeof(IDependencyInfo) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)

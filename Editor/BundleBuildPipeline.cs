@@ -54,7 +54,7 @@ namespace UnityEditor.Build.AssetBundle
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
-                    var buildInput = new BuildContent(input);
+                    var buildInput = new BundleContent(input);
                     var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache);
 
                     var buildContext = new BuildContext(buildInput, buildParams, progressTracker);

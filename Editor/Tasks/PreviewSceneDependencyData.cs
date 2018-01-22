@@ -93,7 +93,6 @@ namespace UnityEditor.Build.Tasks
             // Add generated scene information to BuildDependencyInfo
             output.SceneInfo.Add(asset, sceneInfo);
             output.SceneUsage.Add(asset, usageTags);
-            output.GlobalUsage |= sceneInfo.globalUsage;
         }
 
         static bool TryLoadFromCache(bool useCache, Hash128 hash, ref SceneDependencyInfo sceneInfo, ref BuildUsageTagSet usageTags)

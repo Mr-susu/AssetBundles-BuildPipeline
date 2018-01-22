@@ -7,7 +7,11 @@ namespace UnityEditor.Build.Interfaces
     public interface IResultInfo : IContextObject
     {
         ScriptCompilationResult ScriptResults { get; set; }
+        Dictionary<string, WriteResult> WriteResults { get; }
+    }
+
+    public interface IBundleResults : IResultInfo
+    {
         Dictionary<string, BundleInfo> BundleInfos { get; }
-        Dictionary<string, List<WriteResult>> BundleResults { get; }
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
+using UnityEditor.Experimental.Build;
 using UnityEditor.Experimental.Build.AssetBundle;
 using UnityEngine;
 
@@ -22,7 +23,7 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(), tracker);
         }
 
-        static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildSettings settings)
+        static Hash128 CalculateInputHash(bool useCache, GUID asset, BuildUsageTagGlobal globalUsage, BuildSettings settings)
         {
             if (!useCache)
                 return new Hash128();
@@ -33,24 +34,28 @@ namespace UnityEditor.Build.Tasks
             var dependencyHashes = new string[dependencies.Length];
             for (int i = 0; i < dependencies.Length; ++i)
                 dependencyHashes[i] = AssetDatabase.GetAssetDependencyHash(dependencies[i]).ToString();
-            return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
+            return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, globalUsage, settings);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildContent input, IDependencyInfo output, IProgressTracker tracker = null)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildContent buildContent, IDependencyInfo dependencyInfo, IProgressTracker tracker = null)
         {
-            foreach (GUID asset in input.Assets)
+            var globalUsage = new BuildUsageTagGlobal();
+            foreach (SceneDependencyInfo sceneInfo in dependencyInfo.SceneInfo.Values)
+                globalUsage |= sceneInfo.globalUsage;
+
+            foreach (GUID asset in buildContent.Assets)
             {
                 var assetInfo = new AssetLoadInfo();
-                var assetPath = AssetDatabase.GUIDToAssetPath(asset.ToString());
                 var usageTags = new BuildUsageTagSet();
+                string assetPath = AssetDatabase.GUIDToAssetPath(asset.ToString());
 
-                Hash128 hash = CalculateInputHash(buildParams.UseCache, asset, buildParams.BundleSettings);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, asset, globalUsage, buildParams.BundleSettings);
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref assetInfo, ref usageTags))
                 {
                     if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", assetPath)))
                         return BuildPipelineCodes.Canceled;
 
-                    SetOutputInformation(asset, assetInfo, usageTags, output);
+                    SetOutputInformation(asset, assetInfo, usageTags, dependencyInfo);
                     continue;
                 }
 
@@ -58,13 +63,14 @@ namespace UnityEditor.Build.Tasks
                     return BuildPipelineCodes.Canceled;
 
                 assetInfo.asset = asset;
-                assetInfo.address = input.Addresses[asset];
+                assetInfo.address = buildContent.Addresses[asset];
                 assetInfo.includedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerObjectIdentifiersInAsset(asset, buildParams.BundleSettings.target));
+
                 var includedObjects = assetInfo.includedObjects.ToArray();
                 assetInfo.referencedObjects = new List<ObjectIdentifier>(BundleBuildInterface.GetPlayerDependenciesForObjects(includedObjects, buildParams.BundleSettings.target, buildParams.BundleSettings.typeDB));
-                BundleBuildInterface.CalculateBuildUsageTags(assetInfo.referencedObjects.ToArray(), includedObjects, output.GlobalUsage, usageTags);
+                BundleBuildInterface.CalculateBuildUsageTags(assetInfo.referencedObjects.ToArray(), includedObjects, globalUsage, usageTags);
 
-                SetOutputInformation(asset, assetInfo, usageTags, output);
+                SetOutputInformation(asset, assetInfo, usageTags, dependencyInfo);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, assetInfo, usageTags))
                     BuildLogger.LogWarning("Unable to cache AssetDependency results for asset '{0}'.", AssetDatabase.GUIDToAssetPath(asset.ToString()));
@@ -77,7 +83,7 @@ namespace UnityEditor.Build.Tasks
         {
             // Add generated asset information to BuildDependencyInfo
             output.AssetInfo.Add(asset, assetInfo);
-            output.BuildUsage.UnionWith(usageTags);
+            output.AssetUsage.Add(asset, usageTags);
         }
 
         static bool TryLoadFromCache(bool useCache, Hash128 hash, ref AssetLoadInfo assetInfo, ref BuildUsageTagSet usageTags)

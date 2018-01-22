@@ -1,150 +1,144 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using UnityEditor.Build.WriteTypes;
+using Assets.UnityPackages.BuildPipeline.Editor.Shared;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
+using UnityEditor.Build.WriteTypes;
 using UnityEditor.Experimental.Build.AssetBundle;
 
 namespace UnityEditor.Build.Tasks
 {
     public struct GenerateBundleCommands : IBuildTask
     {
-        // TODO: Move to utility file
-        public const string k_UnityDefaultResourcePath = "library/unity default resources";
-
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IDeterministicIdentifiers), typeof(IBuildLayout), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IPackingInfo), typeof(IWriteInfo) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBundleLayout), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IBundleWriteInfo), typeof(IDeterministicIdentifiers) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IDeterministicIdentifiers>(), context.GetContextObject<IBuildLayout>(), context.GetContextObject<IBuildContent>(),
-                context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IPackingInfo>(), context.GetContextObject<IWriteInfo>());
+            return Run(context.GetContextObject<IBundleLayout>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(),
+                context.GetContextObject<IBundleWriteInfo>(), context.GetContextObject<IDeterministicIdentifiers>());
         }
 
-        public static BuildPipelineCodes Run(IDeterministicIdentifiers packingMethod, IBuildLayout buildLayout, IBuildContent buildContent, IDependencyInfo dependencyInfo, IPackingInfo packingInfo, IWriteInfo output)
+        public static BuildPipelineCodes Run(IBundleLayout bundleLayout, IBuildContent buildContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
         {
-            if (buildLayout.ExplicitLayout.IsNullOrEmpty())
+            foreach (var bundlePair in bundleLayout.ExplicitLayout)
             {
-                BuildLogger.LogError("Running build pipeline that requires explicit bundle assignments without IBuildContent.ExplicitLayout populated");
-                return BuildPipelineCodes.Error;
-            }
-
-            foreach (KeyValuePair<string, List<GUID>> bundle in buildLayout.ExplicitLayout)
-            {
-                if (ExtensionMethods.ValidAssetBundle(bundle.Value))
+                if (ExtensionMethods.ValidAssetBundle(bundlePair.Value))
                 {
-                    var op = CreateAssetBundleWriteOperation(packingMethod, bundle.Key, bundle.Value, dependencyInfo, packingInfo);
-                    output.AssetBundles.Add(bundle.Key, op);
+                    CreateAssetBundleCommand(bundlePair.Key, writeInfo.AssetToFiles[bundlePair.Value[0]][0], bundlePair.Value, dependencyInfo, writeInfo, packingMethod);
                 }
-                else if (ExtensionMethods.ValidSceneBundle(bundle.Value))
+                else if (ExtensionMethods.ValidSceneBundle(bundlePair.Value))
                 {
-                    var ops = CreateSceneBundleWriteOperations(packingMethod, bundle.Key, bundle.Value, buildContent, dependencyInfo, packingInfo);
-                    output.SceneBundles.Add(bundle.Key, ops);
+                    CreateSceneBundleCommand(bundlePair.Key, writeInfo.AssetToFiles[bundlePair.Value[0]][0], bundlePair.Value[0], bundlePair.Value, buildContent, dependencyInfo, writeInfo);
+                    for (int i = 1; i < bundlePair.Value.Count; ++i)
+                        CreateSceneDataCommand(writeInfo.AssetToFiles[bundlePair.Value[i]][0], bundlePair.Value[i], dependencyInfo, writeInfo);
                 }
             }
             return BuildPipelineCodes.Success;
         }
 
-        static IWriteOperation CreateAssetBundleWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> assets, IDependencyInfo dependencyInfo, IPackingInfo packingInfo)
+        static WriteCommand CreateWriteCommand(string internalName, List<ObjectIdentifier> objects, IDeterministicIdentifiers packingMethod)
         {
-            var dependencies = new HashSet<string>();
+            var command = new WriteCommand();
+            command.internalName = internalName;
+            command.fileName = Path.GetFileName(internalName); // TODO: Maybe remove this from C++?
+            // command.dependencies // TODO: Definitely remove this from C++
 
-            var op = new AssetBundleWriteOperation();
-
-            op.info.bundleName = bundleName;
-            op.info.bundleAssets = new List<AssetLoadInfo>();
-            foreach (GUID asset in assets)
-            {
-                op.info.bundleAssets.Add(dependencyInfo.AssetInfo[asset]);
-                dependencies.UnionWith(packingInfo.AssetToFiles[asset]);
-            }
-            dependencies.Remove(bundleName); // Don't include self as dependency
-            op.info.bundleDependencies = dependencies.OrderBy(x => x).ToList();
-
-            op.command.fileName = packingMethod.GenerateInternalFileName(bundleName);
-            op.command.internalName = string.Format("archive:/{0}/{0}", op.command.fileName);
-            op.command.dependencies = op.info.bundleDependencies.Select(x => string.Format("archive:/{0}/{0}", packingMethod.GenerateInternalFileName(x))).ToList();
-            op.command.serializeObjects = packingInfo.FileToObjects[bundleName].Select(x => new SerializationInfo
+            command.serializeObjects = objects.Select(x => new SerializationInfo
             {
                 serializationObject = x,
                 serializationIndex = packingMethod.SerializationIndexFromObjectIdentifier(x)
             }).ToList();
-
-            return op;
+            return command;
         }
 
-        static List<IWriteOperation> CreateSceneBundleWriteOperations(IDeterministicIdentifiers packingMethod, string bundleName, List<GUID> scenes, IBuildContent buildContent, IDependencyInfo dependencyInfo, IPackingInfo packingInfo)
+        static void CreateAssetBundleCommand(string bundleName, string internalName, List<GUID> assets, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
         {
-            // The 'Folder' we mount for asset bundles is the internal file name of the first serialized file in the archive
-            string bundleFileName = packingMethod.GenerateInternalFileName(AssetDatabase.GUIDToAssetPath(scenes[0].ToString()));
+            var abOp = new AssetBundleWriteOperation();
+            abOp.usageSet = writeInfo.FileToUsageSet[internalName];
+            abOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
 
-            var ops = new List<IWriteOperation>();
-            var sceneLoadInfo = new List<SceneLoadInfo>();
-            var dependencies = new HashSet<string>();
-            foreach (GUID scene in scenes)
+            var fileObjects = writeInfo.FileToObjects[internalName];
+            abOp.command = CreateWriteCommand(internalName, fileObjects, packingMethod);
+
             {
-                IWriteOperation op = CreateSceneDataWriteOperation(packingMethod, bundleName, bundleFileName, scene, dependencyInfo, packingInfo);
-                ops.Add(op);
+                abOp.info = new AssetBundleInfo();
+                abOp.info.bundleName = bundleName;
 
-                string scenePath = AssetDatabase.GUIDToAssetPath(scene.ToString());
-                sceneLoadInfo.Add(new SceneLoadInfo
+                var dependencies = new HashSet<string>();
+                var bundles = assets.SelectMany(x => writeInfo.AssetToFiles[x].Select(y => writeInfo.FileToBundle[y]));
+                dependencies.UnionWith(bundles);
+                dependencies.Remove(bundleName);
+
+                abOp.info.bundleDependencies = dependencies.OrderBy(x => x).ToList();
+                abOp.info.bundleAssets = assets.Select(x => dependencyInfo.AssetInfo[x]).ToList();
+            }
+
+            writeInfo.WriteOperations.Add(abOp);
+        }
+
+        static void CreateSceneBundleCommand(string bundleName, string internalName, GUID asset, List<GUID> assets, IBuildContent buildContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo)
+        {
+            var sbOp = new SceneBundleWriteOperation();
+            sbOp.usageSet = writeInfo.FileToUsageSet[internalName];
+            sbOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
+
+            var fileObjects = writeInfo.FileToObjects[internalName];
+            sbOp.command = CreateWriteCommand(internalName, fileObjects, new LinearPackedIdentifiers(3)); // Start at 3: PreloadData = 1, AssetBundle = 2
+
+            var sceneInfo = dependencyInfo.SceneInfo[asset];
+            sbOp.scene = sceneInfo.scene;
+            sbOp.processedScene = sceneInfo.processedScene;
+
+            {
+                sbOp.preloadInfo = new PreloadInfo();
+                sbOp.preloadInfo.preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList();
+            }
+
+            {
+                sbOp.info = new SceneBundleInfo();
+                sbOp.info.bundleName = bundleName;
+
+                var dependencies = new HashSet<string>();
+                var bundles = assets.SelectMany(x => writeInfo.AssetToFiles[x].Select(y => writeInfo.FileToBundle[y]));
+                dependencies.UnionWith(bundles);
+                dependencies.Remove(bundleName);
+
+                sbOp.info.bundleDependencies = dependencies.OrderBy(x => x).ToList();
+                sbOp.info.bundleScenes = assets.Select(x =>
                 {
-                    asset = scene,
-                    address = buildContent.Addresses[scene],
-                    internalName = packingMethod.GenerateInternalFileName(scenePath)
-                });
-
-                dependencies.UnionWith(packingInfo.AssetToFiles[scene]);
+                    return new SceneLoadInfo
+                    {
+                        asset = x,
+                        internalName = writeInfo.AssetToFiles[x][0],
+                        address = buildContent.Addresses[x]
+                    };
+                }).ToList();
             }
-            dependencies.Remove(bundleName); // Don't include self as dependency
-
-            // First write op must be SceneBundleWriteOperation
-            var bundleOp = new SceneBundleWriteOperation((SceneDataWriteOperation)ops[0]);
-            foreach (SerializationInfo serializeObj in bundleOp.command.serializeObjects)
-                serializeObj.serializationIndex++; // Shift by 1 to account for asset bundle object
-            ops[0] = bundleOp;
-
-            bundleOp.info.bundleName = bundleName;
-            bundleOp.info.bundleScenes = sceneLoadInfo;
-            bundleOp.info.bundleDependencies = dependencies.OrderBy(x => x).ToList();
-
-            return ops;
         }
 
-        static IWriteOperation CreateSceneDataWriteOperation(IDeterministicIdentifiers packingMethod, string bundleName, string bundleFileName, GUID scene, IDependencyInfo dependencyInfo, IPackingInfo packingInfo)
+        static void CreateSceneDataCommand(string internalName, GUID asset, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo)
         {
-            SceneDependencyInfo sceneInfo = dependencyInfo.SceneInfo[scene];
-            var dependencies = packingInfo.AssetToFiles[scene].OrderBy(x => x).ToList();
-            dependencies.Remove(bundleName); // Don't include self as dependency
+            var sbOp = new SceneDataWriteOperation();
+            sbOp.usageSet = writeInfo.FileToUsageSet[internalName];
+            sbOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
 
-            var op = new SceneDataWriteOperation();
+            var fileObjects = writeInfo.FileToObjects[internalName];
+            sbOp.command = CreateWriteCommand(internalName, fileObjects, new LinearPackedIdentifiers(2)); // Start at 2: PreloadData = 1
 
-            op.scene = sceneInfo.scene;
-            op.processedScene = sceneInfo.processedScene;
-            op.usageTags = dependencyInfo.SceneUsage[scene];
+            var sceneInfo = dependencyInfo.SceneInfo[asset];
+            sbOp.scene = sceneInfo.scene;
+            sbOp.processedScene = sceneInfo.processedScene;
 
-            op.command.fileName = packingMethod.GenerateInternalFileName(sceneInfo.scene) + ".sharedAssets";
-            op.command.internalName = string.Format("archive:/{0}/{1}", bundleFileName, op.command.fileName);
-            op.command.dependencies = dependencies.Select(x => string.Format("archive:/{0}/{0}", packingMethod.GenerateInternalFileName(x))).ToList();
-            long identifier = 2; // Scenes use linear id assignment, starting at 2 (1 is preload object)
-            op.command.serializeObjects = packingInfo.FileToObjects[scene.ToString()].Select(x => new SerializationInfo
             {
-                serializationObject = x,
-                serializationIndex = identifier++
-            }).ToList();
-
-            op.preloadInfo.preloadObjects = new List<ObjectIdentifier>();
-            foreach (ObjectIdentifier reference in sceneInfo.referencedObjects)
-            {
-                if (dependencyInfo.AssetInfo.ContainsKey(reference.guid) || reference.filePath == k_UnityDefaultResourcePath)
-                    op.preloadInfo.preloadObjects.Add(reference);
+                sbOp.preloadInfo = new PreloadInfo();
+                sbOp.preloadInfo.preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList();
             }
-
-            return op;
         }
     }
 }

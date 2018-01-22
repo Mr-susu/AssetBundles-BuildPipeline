@@ -2,7 +2,6 @@
 
 namespace UnityEditor.Build.Interfaces
 {
-    // Rename from BuildContent
     public interface IBuildContent : IContextObject
     {
         List<GUID> Assets { get; }

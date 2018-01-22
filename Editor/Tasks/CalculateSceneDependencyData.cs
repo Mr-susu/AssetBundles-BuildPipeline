@@ -35,9 +35,9 @@ namespace UnityEditor.Build.Tasks
             return HashingMethods.CalculateMD5Hash(k_Version, assetHash, dependencyHashes, settings);
         }
 
-        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildContent input, IDependencyInfo output, IProgressTracker tracker = null)
+        public static BuildPipelineCodes Run(IBuildParams buildParams, IBuildContent buildContent, IDependencyInfo dependencyInfo, IProgressTracker tracker = null)
         {
-            foreach (GUID asset in input.Scenes)
+            foreach (GUID asset in buildContent.Scenes)
             {
                 string scenePath = AssetDatabase.GUIDToAssetPath(asset.ToString());
 
@@ -50,7 +50,7 @@ namespace UnityEditor.Build.Tasks
                     if (!tracker.UpdateInfoUnchecked(string.Format("{0} (Cached)", scenePath)))
                         return BuildPipelineCodes.Canceled;
 
-                    SetOutputInformation(asset, sceneInfo, usageTags, output);
+                    SetOutputInformation(asset, sceneInfo, usageTags, dependencyInfo);
                     continue;
                 }
 
@@ -58,7 +58,7 @@ namespace UnityEditor.Build.Tasks
                     return BuildPipelineCodes.Canceled;
 
                 sceneInfo = BundleBuildInterface.PrepareScene(scenePath, buildParams.BundleSettings, usageTags, buildParams.GetTempOrCacheBuildPath(hash));
-                SetOutputInformation(asset, sceneInfo, usageTags, output);
+                SetOutputInformation(asset, sceneInfo, usageTags, dependencyInfo);
 
                 if (!TrySaveToCache(buildParams.UseCache, hash, sceneInfo, usageTags))
                     BuildLogger.LogWarning("Unable to cache SceneDependency results for asset '{0}'.", AssetDatabase.GUIDToAssetPath(asset.ToString()));
@@ -72,8 +72,6 @@ namespace UnityEditor.Build.Tasks
             // Add generated scene information to BuildDependencyInfo
             output.SceneInfo.Add(asset, sceneInfo);
             output.SceneUsage.Add(asset, usageTags);
-            output.GlobalUsage |= sceneInfo.globalUsage;
-            output.BuildUsage.UnionWith(usageTags);
         }
 
         static bool TryLoadFromCache(bool useCache, Hash128 hash, ref SceneDependencyInfo sceneInfo, ref BuildUsageTagSet usageTags)
