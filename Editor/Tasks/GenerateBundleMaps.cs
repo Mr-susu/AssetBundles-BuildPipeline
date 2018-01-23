@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Experimental.Build.AssetBundle;
+using UnityEngine;
 
 namespace UnityEditor.Build.Tasks
 {
@@ -41,17 +43,17 @@ namespace UnityEditor.Build.Tasks
                 writeInfo.FileToReferenceMap.Add(files[0], referenceMap);
             }
 
+            var fileToCommand = writeInfo.WriteOperations.ToDictionary(x => x.command.internalName, x => x.command);
             foreach (var file in files)
             {
-                var command = writeInfo.WriteCommands[file];
-                referenceMap.AddMappings(command.internalName, command.serializeObjects.ToArray());
+                var command = fileToCommand[file];
+                referenceMap.AddMappings(file, command.serializeObjects.ToArray());
             }
         }
 
         static void AddUsageSetForFiles(GUID asset, IList<string> files, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo)
         {
             BuildUsageTagSet assetUsage;
-            // TODO: Combine usage maps?
             if (!dependencyInfo.AssetUsage.TryGetValue(asset, out assetUsage))
             {
                 if (!dependencyInfo.SceneUsage.TryGetValue(asset, out assetUsage))

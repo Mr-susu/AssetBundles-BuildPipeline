@@ -10,4 +10,9 @@ namespace UnityEditor.Build.Interfaces
 
         Dictionary<GUID, string> Addresses { get; }
     }
+
+    public interface IBundleContent : IBuildContent
+    {
+        Dictionary<string, List<GUID>> ExplicitLayout { get; }
+    }
 }

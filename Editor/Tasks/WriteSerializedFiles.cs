@@ -50,10 +50,11 @@ namespace UnityEditor.Build.Tasks
                     continue;
                 }
 
-
-                // TODO: Use temp location?
-                result = op.Write(buildParams.OutputFolder, buildParams.BundleSettings, globalUSage);
+                result = op.Write(buildParams.GetTempOrCacheBuildPath(hash), buildParams.BundleSettings, globalUSage);
                 SetOutputInformation(op.command.internalName, result, output);
+
+                if (!TrySaveToCache(buildParams.UseCache, hash, result))
+                    BuildLogger.LogWarning("Unable to cache WriteSerializedFiles result for file {0}.", op.command.internalName);
             }
 
             return BuildPipelineCodes.Success;

@@ -23,7 +23,7 @@ namespace Assets.UnityPackages.BuildPipeline.Editor.Tasks
             get { return k_Version; }
         }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IBundleLayout), typeof(IDependencyInfo), typeof(IBundleWriteInfo), typeof(IDeterministicIdentifiers) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBundleContent), typeof(IDependencyInfo), typeof(IBundleWriteInfo), typeof(IDeterministicIdentifiers) };
 
         public Type[] RequiredContextTypes
         {
@@ -32,16 +32,16 @@ namespace Assets.UnityPackages.BuildPipeline.Editor.Tasks
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBundleLayout>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IBundleWriteInfo>(),
+            return Run(context.GetContextObject<IBundleContent>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IBundleWriteInfo>(),
                 context.GetContextObject<IDeterministicIdentifiers>());
         }
 
-        public static BuildPipelineCodes Run(IBundleLayout bundleLayout, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
+        public static BuildPipelineCodes Run(IBundleContent bundleContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
         {
             Dictionary<GUID, List<GUID>> AssetToReferences = new Dictionary<GUID, List<GUID>>();
 
             // Pack each asset bundle
-            foreach (var bundle in bundleLayout.ExplicitLayout)
+            foreach (var bundle in bundleContent.ExplicitLayout)
             {
                 if (ExtensionMethods.ValidAssetBundle(bundle.Value))
                     PackAssetBundle(bundle.Key, bundle.Value, dependencyInfo, writeInfo, packingMethod, AssetToReferences);
@@ -50,7 +50,7 @@ namespace Assets.UnityPackages.BuildPipeline.Editor.Tasks
             }
 
             // Calculate Asset file load dependency list
-            foreach (var bundle in bundleLayout.ExplicitLayout)
+            foreach (var bundle in bundleContent.ExplicitLayout)
             {
                 foreach (var asset in bundle.Value)
                 {

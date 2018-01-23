@@ -107,8 +107,8 @@ namespace UnityEditor.Build
 
             // Packing
             pipeline.Add(new GenerateBundlePacking());
-            pipeline.Add(new GenerateBundleMaps());
             pipeline.Add(new GenerateBundleCommands());
+            pipeline.Add(new GenerateBundleMaps());
             pipeline.Add(new PostPackingCallback());
 
             // Writing

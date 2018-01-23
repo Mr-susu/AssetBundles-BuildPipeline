@@ -8,7 +8,6 @@ namespace UnityEditor.Build.Interfaces
     {
         Dictionary<GUID, List<string>> AssetToFiles { get; }
         Dictionary<string, List<ObjectIdentifier>> FileToObjects { get; }
-        Dictionary<string, WriteCommand> WriteCommands { get; }
 
         List<IWriteOperation> WriteOperations { get; }
     }

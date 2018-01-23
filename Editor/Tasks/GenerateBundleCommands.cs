@@ -15,18 +15,18 @@ namespace UnityEditor.Build.Tasks
         const int k_Version = 1;
         public int Version { get { return k_Version; } }
 
-        static readonly Type[] k_RequiredTypes = { typeof(IBundleLayout), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IBundleWriteInfo), typeof(IDeterministicIdentifiers) };
+        static readonly Type[] k_RequiredTypes = { typeof(IBundleContent), typeof(IBuildContent), typeof(IDependencyInfo), typeof(IBundleWriteInfo), typeof(IDeterministicIdentifiers) };
         public Type[] RequiredContextTypes { get { return k_RequiredTypes; } }
 
         public BuildPipelineCodes Run(IBuildContext context)
         {
-            return Run(context.GetContextObject<IBundleLayout>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(),
+            return Run(context.GetContextObject<IBundleContent>(), context.GetContextObject<IBuildContent>(), context.GetContextObject<IDependencyInfo>(),
                 context.GetContextObject<IBundleWriteInfo>(), context.GetContextObject<IDeterministicIdentifiers>());
         }
 
-        public static BuildPipelineCodes Run(IBundleLayout bundleLayout, IBuildContent buildContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
+        public static BuildPipelineCodes Run(IBundleContent bundleContent, IBuildContent buildContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
         {
-            foreach (var bundlePair in bundleLayout.ExplicitLayout)
+            foreach (var bundlePair in bundleContent.ExplicitLayout)
             {
                 if (ExtensionMethods.ValidAssetBundle(bundlePair.Value))
                 {
@@ -60,8 +60,11 @@ namespace UnityEditor.Build.Tasks
         static void CreateAssetBundleCommand(string bundleName, string internalName, List<GUID> assets, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo, IDeterministicIdentifiers packingMethod)
         {
             var abOp = new AssetBundleWriteOperation();
-            abOp.usageSet = writeInfo.FileToUsageSet[internalName];
-            abOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
+            abOp.usageSet = new BuildUsageTagSet();
+            writeInfo.FileToUsageSet.Add(internalName, abOp.usageSet);
+
+            abOp.referenceMap = new BuildReferenceMap();
+            writeInfo.FileToReferenceMap.Add(internalName, abOp.referenceMap);
 
             var fileObjects = writeInfo.FileToObjects[internalName];
             abOp.command = CreateWriteCommand(internalName, fileObjects, packingMethod);
@@ -85,8 +88,11 @@ namespace UnityEditor.Build.Tasks
         static void CreateSceneBundleCommand(string bundleName, string internalName, GUID asset, List<GUID> assets, IBuildContent buildContent, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo)
         {
             var sbOp = new SceneBundleWriteOperation();
-            sbOp.usageSet = writeInfo.FileToUsageSet[internalName];
-            sbOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
+            sbOp.usageSet = new BuildUsageTagSet();
+            writeInfo.FileToUsageSet.Add(internalName, sbOp.usageSet);
+
+            sbOp.referenceMap = new BuildReferenceMap();
+            writeInfo.FileToReferenceMap.Add(internalName, sbOp.referenceMap);
 
             var fileObjects = writeInfo.FileToObjects[internalName];
             sbOp.command = CreateWriteCommand(internalName, fileObjects, new LinearPackedIdentifiers(3)); // Start at 3: PreloadData = 1, AssetBundle = 2
@@ -96,8 +102,7 @@ namespace UnityEditor.Build.Tasks
             sbOp.processedScene = sceneInfo.processedScene;
 
             {
-                sbOp.preloadInfo = new PreloadInfo();
-                sbOp.preloadInfo.preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList();
+                sbOp.preloadInfo = new PreloadInfo { preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList() };
             }
 
             {
@@ -110,35 +115,39 @@ namespace UnityEditor.Build.Tasks
                 dependencies.Remove(bundleName);
 
                 sbOp.info.bundleDependencies = dependencies.OrderBy(x => x).ToList();
-                sbOp.info.bundleScenes = assets.Select(x =>
+                sbOp.info.bundleScenes = assets.Select(x => new SceneLoadInfo
                 {
-                    return new SceneLoadInfo
-                    {
-                        asset = x,
-                        internalName = writeInfo.AssetToFiles[x][0],
-                        address = buildContent.Addresses[x]
-                    };
+                    asset = x,
+                    internalName = writeInfo.AssetToFiles[x][0],
+                    address = buildContent.Addresses[x]
                 }).ToList();
             }
+
+            writeInfo.WriteOperations.Add(sbOp);
         }
 
         static void CreateSceneDataCommand(string internalName, GUID asset, IDependencyInfo dependencyInfo, IBundleWriteInfo writeInfo)
         {
-            var sbOp = new SceneDataWriteOperation();
-            sbOp.usageSet = writeInfo.FileToUsageSet[internalName];
-            sbOp.referenceMap = writeInfo.FileToReferenceMap[internalName];
+            var sdOp = new SceneDataWriteOperation();
+            sdOp.usageSet = new BuildUsageTagSet();
+            writeInfo.FileToUsageSet.Add(internalName, sdOp.usageSet);
+
+            sdOp.referenceMap = new BuildReferenceMap();
+            writeInfo.FileToReferenceMap.Add(internalName, sdOp.referenceMap);
 
             var fileObjects = writeInfo.FileToObjects[internalName];
-            sbOp.command = CreateWriteCommand(internalName, fileObjects, new LinearPackedIdentifiers(2)); // Start at 2: PreloadData = 1
+            sdOp.command = CreateWriteCommand(internalName, fileObjects, new LinearPackedIdentifiers(2)); // Start at 2: PreloadData = 1
 
             var sceneInfo = dependencyInfo.SceneInfo[asset];
-            sbOp.scene = sceneInfo.scene;
-            sbOp.processedScene = sceneInfo.processedScene;
+            sdOp.scene = sceneInfo.scene;
+            sdOp.processedScene = sceneInfo.processedScene;
 
             {
-                sbOp.preloadInfo = new PreloadInfo();
-                sbOp.preloadInfo.preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList();
+                sdOp.preloadInfo = new PreloadInfo();
+                sdOp.preloadInfo.preloadObjects = sceneInfo.referencedObjects.Where(x => !fileObjects.Contains(x)).ToList();
             }
+
+            writeInfo.WriteOperations.Add(sdOp);
         }
     }
 }

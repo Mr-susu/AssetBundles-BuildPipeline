@@ -11,14 +11,12 @@ namespace UnityEditor.Build
     {
         public Dictionary<GUID, List<string>> AssetToFiles { get; private set; }
         public Dictionary<string, List<ObjectIdentifier>> FileToObjects { get; private set; }
-        public Dictionary<string, WriteCommand> WriteCommands { get; private set; }
         public List<IWriteOperation> WriteOperations { get; private set; }
 
         public BuildWriteInfo()
         {
             AssetToFiles = new Dictionary<GUID, List<string>>();
             FileToObjects = new Dictionary<string, List<ObjectIdentifier>>();
-            WriteCommands = new Dictionary<string, WriteCommand>();
             WriteOperations = new List<IWriteOperation>();
         }
     }
@@ -31,7 +29,6 @@ namespace UnityEditor.Build
         public Dictionary<string, string> FileToBundle { get; private set; }
         public Dictionary<string, BuildUsageTagSet> FileToUsageSet { get; private set; }
         public Dictionary<string, BuildReferenceMap> FileToReferenceMap { get; private set; }
-        public Dictionary<string, WriteCommand> WriteCommands { get; private set; }
         public List<IWriteOperation> WriteOperations { get; private set; }
 
         public BundleWriteInfo()
@@ -41,7 +38,6 @@ namespace UnityEditor.Build
             FileToBundle = new Dictionary<string, string>();
             FileToUsageSet = new Dictionary<string, BuildUsageTagSet>();
             FileToReferenceMap = new Dictionary<string, BuildReferenceMap>();
-            WriteCommands = new Dictionary<string, WriteCommand>();
             WriteOperations = new List<IWriteOperation>();
         }
 

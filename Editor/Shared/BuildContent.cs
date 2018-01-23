@@ -7,7 +7,7 @@ using UnityEditor.Experimental.Build.AssetBundle;
 namespace UnityEditor.Build
 {
     [Serializable]
-    public class BundleContent : IBuildContent, IBundleLayout
+    public class BuildContent : IBuildContent
     {
         public List<GUID> Assets { get; private set; }
 
@@ -15,7 +15,35 @@ namespace UnityEditor.Build
 
         public Dictionary<GUID, string> Addresses { get; private set; }
 
-        // NOTES: Only used in Asset Bundle Compatible pipeline
+
+        public BuildContent(IEnumerable<GUID> assets)
+        {
+            Assets = new List<GUID>();
+            Scenes = new List<GUID>();
+            Addresses = new Dictionary<GUID, string>();
+
+            foreach (var asset in assets)
+            {
+                Addresses.Add(asset, AssetDatabase.GUIDToAssetPath(asset.ToString()));
+                if (ExtensionMethods.ValidAsset(asset))
+                    Assets.Add(asset);
+                else if (ExtensionMethods.ValidScene(asset))
+                    Scenes.Add(asset);
+                else
+                    throw new ArgumentException(string.Format("Asset '{0}' is not a valid Asset or Scene.", asset));
+            }
+        }
+    }
+
+    [Serializable]
+    public class BundleContent : IBundleContent
+    {
+        public List<GUID> Assets { get; private set; }
+
+        public List<GUID> Scenes { get; private set; }
+
+        public Dictionary<GUID, string> Addresses { get; private set; }
+
         public Dictionary<string, List<GUID>> ExplicitLayout { get; private set; }
 
         public BundleContent(BuildInput bundleInput)
@@ -40,24 +68,6 @@ namespace UnityEditor.Build
                     else
                         throw new ArgumentException(string.Format("Asset '{0}' is not a valid Asset or Scene.", assetInfo.asset));
                 }
-            }
-        }
-
-        public BundleContent(IEnumerable<GUID> assets)
-        {
-            Assets = new List<GUID>();
-            Scenes = new List<GUID>();
-            Addresses = new Dictionary<GUID, string>();
-
-            foreach (var asset in assets)
-            {
-                Addresses.Add(asset, AssetDatabase.GUIDToAssetPath(asset.ToString()));
-                if (ExtensionMethods.ValidAsset(asset))
-                    Assets.Add(asset);
-                else if (ExtensionMethods.ValidScene(asset))
-                    Scenes.Add(asset);
-                else
-                    throw new ArgumentException(string.Format("Asset '{0}' is not a valid Asset or Scene.", asset));
             }
         }
 

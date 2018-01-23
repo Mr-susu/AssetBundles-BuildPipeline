@@ -10,7 +10,7 @@ namespace UnityEditor.Build.Interfaces
         Dictionary<string, WriteResult> WriteResults { get; }
     }
 
-    public interface IBundleResults : IResultInfo
+    public interface IBundleResultInfo : IResultInfo
     {
         Dictionary<string, BundleInfo> BundleInfos { get; }
     }

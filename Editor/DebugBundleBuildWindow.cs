@@ -217,12 +217,12 @@ namespace UnityEditor.Build
                     var buildLayout = new BundleContent(BundleBuildInterface.GenerateBuildInput());
 
                     var buildContext = new BuildContext(buildLayout, buildParams, progressTracker);
+                    buildContext.SetContextObject(new Unity5PackedIdentifiers());
                     buildContext.SetContextObject(new BuildDependencyInfo());
-                    buildContext.SetContextObject(new BuildWriteInfo());
-                    buildContext.SetContextObject(new BuildResultInfo());
+                    buildContext.SetContextObject(new BundleWriteInfo());
+                    buildContext.SetContextObject(new BundleResultInfo());
                     buildContext.SetContextObject(PlayerBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
-                    buildContext.SetContextObject(new Unity5PackedIdentifiers());
 
                     var pipeline = BuildPipeline.CreatePipeline(m_Settings.packPipeline);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
