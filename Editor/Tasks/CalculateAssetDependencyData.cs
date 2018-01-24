@@ -102,7 +102,7 @@ namespace UnityEditor.Build.Tasks
 
         static bool TrySaveToCache(bool useCache, Hash128 hash, AssetLoadInfo assetInfo, BuildUsageTagSet usageTags)
         {
-            if (useCache && !BuildCache.SaveCachedResults(hash, assetInfo) && !BuildCache.SaveCachedResults(hash, usageTags))
+            if (useCache && !(BuildCache.SaveCachedResults(hash, assetInfo) && BuildCache.SaveCachedResults(hash, usageTags)))
                 return false;
             return true;
         }

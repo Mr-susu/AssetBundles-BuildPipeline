@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
@@ -25,10 +23,12 @@ namespace UnityEditor.Build.Tasks
             return Run(context.GetContextObject<IBuildParams>(), context.GetContextObject<IDependencyInfo>(), context.GetContextObject<IWriteInfo>(), context.GetContextObject<IResultInfo>(), tracker);
         }
 
-        protected static Hash128 CalculateInputHash(IBuildParams buildParams, IWriteOperation operation, List<WriteCommand> dependencies, BuildUsageTagGlobal globalUsage)
+        protected static Hash128 CalculateInputHash(bool useCache, IWriteOperation operation, BuildSettings settings, BuildUsageTagGlobal globalUsage)
         {
-            // TODO: Caching
-            return new Hash128();
+            if (!useCache)
+                return new Hash128();
+
+            return HashingMethods.CalculateMD5Hash(k_Version, operation, settings, globalUsage);
         }
 
         public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo dependencyInfo, IWriteInfo writeInfo, IResultInfo output, IProgressTracker tracker = null)
@@ -39,7 +39,7 @@ namespace UnityEditor.Build.Tasks
 
             foreach (var op in writeInfo.WriteOperations)
             {
-                Hash128 hash = CalculateInputHash(buildParams, op, null, globalUSage);
+                Hash128 hash = CalculateInputHash(buildParams.UseCache, op, buildParams.BundleSettings, globalUSage);
                 WriteResult result = new WriteResult();
                 if (TryLoadFromCache(buildParams.UseCache, hash, ref result))
                 {
@@ -60,6 +60,11 @@ namespace UnityEditor.Build.Tasks
             return BuildPipelineCodes.Success;
         }
 
+        static void SetOutputInformation(string fileName, WriteResult result, IResultInfo output)
+        {
+            output.WriteResults.Add(fileName, result);
+        }
+
         static bool TryLoadFromCache(bool useCache, Hash128 hash, ref WriteResult result)
         {
             WriteResult cachedResult;
@@ -76,11 +81,6 @@ namespace UnityEditor.Build.Tasks
             if (useCache && !BuildCache.SaveCachedResults(hash, result))
                 return false;
             return true;
-        }
-
-        static void SetOutputInformation(string fileName, WriteResult result, IResultInfo output)
-        {
-            output.WriteResults.Add(fileName, result);
         }
     }
 }

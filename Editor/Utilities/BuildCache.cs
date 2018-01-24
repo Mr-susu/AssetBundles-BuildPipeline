@@ -1,4 +1,6 @@
-﻿using System;
+﻿//#define BUILD_CACHE_DEBUG
+
+using System;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using UnityEngine;
@@ -37,6 +39,7 @@ namespace UnityEditor.Build.Utilities
             var filePath = string.Format("{0}/{1}", path, typeof(T).Name);
             if (!File.Exists(filePath))
             {
+                BuildLogger.LogCache("false TryLoadCachedResults<{0}>({1}, out ...)", typeof(T).Name, hash.ToString());
                 results = default(T);
                 return false;
             }
@@ -45,11 +48,14 @@ namespace UnityEditor.Build.Utilities
             {
                 var formatter = new BinaryFormatter();
                 using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read))
-                    results = (T) formatter.Deserialize(stream);
+                    results = (T)formatter.Deserialize(stream);
+                BuildLogger.LogCache("true TryLoadCachedResults<{0}>({1}, out ...)", typeof(T).Name, hash.ToString());
                 return true;
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                BuildLogger.LogCache("Exception TryLoadCachedResults<{0}>({1}, out ...)", typeof(T).Name, hash.ToString());
+                BuildLogger.LogException(e);
                 results = default(T);
                 return false;
             }
@@ -60,16 +66,19 @@ namespace UnityEditor.Build.Utilities
             rootCachePath = GetPathForCachedArtifacts(hash);
             if (!Directory.Exists(rootCachePath))
             {
+                BuildLogger.LogCache("false TryLoadCachedArtifacts({0}, out ..., out ...)", hash.ToString());
                 artifactPaths = null;
                 return false;
             }
 
             artifactPaths = Directory.GetFiles(rootCachePath, "*", SearchOption.AllDirectories);
+            BuildLogger.Log("true TryLoadCachedArtifacts({0}, out ..., out ...)", hash.ToString());
             return true;
         }
 
         public static bool TryLoadCachedResultsAndArtifacts<T>(Hash128 hash, out T results, out string[] artifactPaths, out string rootCachePath)
         {
+            BuildLogger.LogCache("TryLoadCachedResultsAndArtifacts<{0}({1}, out ..., out ..., out ...)", typeof(T).Name, hash.ToString());
             artifactPaths = null;
             rootCachePath = GetPathForCachedArtifacts(hash);
             if (!TryLoadCachedResults(hash, out results))
@@ -90,12 +99,15 @@ namespace UnityEditor.Build.Utilities
                 using (var stream = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write))
                     formatter.Serialize(stream, results);
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                BuildLogger.LogCache("Exception SaveCachedResults<{0}>({1}, T ...)", typeof(T).Name, hash.ToString());
+                BuildLogger.LogException(e);
                 if (Directory.Exists(path))
                     Directory.Delete(path, true);
                 return false;
             }
+            BuildLogger.LogCache("true SaveCachedResults<{0}>({1}, T ...)", typeof(T).Name, hash.ToString());
             return true;
         }
 
@@ -125,8 +137,9 @@ namespace UnityEditor.Build.Utilities
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
+                BuildLogger.LogException(e);
                 if (Directory.Exists(path))
                     Directory.Delete(path, true);
                 return false;
@@ -134,14 +147,17 @@ namespace UnityEditor.Build.Utilities
 
             if (!result && Directory.Exists(path))
                 Directory.Delete(path, true);
+
+            BuildLogger.LogCache("{0} SaveCachedArtifacts({1}, string[] ..., string ...)", result, hash.ToString());
             return result;
         }
 
         public static bool SaveCachedResultsAndArtifacts<T>(Hash128 hash, T results, string[] artifactPaths, string rootPath)
         {
+            BuildLogger.LogCache("SaveCachedResultsAndArtifacts<{0}({1}, T ..., string[] ..., string ...)", typeof(T).Name, hash.ToString());
             if (SaveCachedResults(hash, results) && SaveCachedArtifacts(hash, artifactPaths, rootPath))
                 return true;
-            
+
             var path = GetPathForCachedResults(hash);
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
@@ -149,7 +165,7 @@ namespace UnityEditor.Build.Utilities
             path = GetPathForCachedArtifacts(hash);
             if (Directory.Exists(path))
                 Directory.Delete(path, true);
-            
+
             return false;
         }
     }

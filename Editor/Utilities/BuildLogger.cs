@@ -5,6 +5,12 @@ namespace UnityEditor.Build.Utilities
 {
     public static class BuildLogger
     {
+        [Conditional("BUILD_CACHE_DEBUG")]
+        public static void LogCache(string msg, params object[] attrs)
+        {
+            LogWarning(msg, attrs);
+        }
+
         [Conditional("DEBUG")]
         public static void Log(string msg)
         {

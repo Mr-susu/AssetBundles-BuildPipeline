@@ -63,8 +63,6 @@ namespace UnityEditor.Build
             //pipeline.Add(new ArchiveAndCompressBundles());
             //pipeline.Add(new PostWritingCallback());
 
-            pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
-
             return pipeline;
         }
 
@@ -118,7 +116,6 @@ namespace UnityEditor.Build
 
             // Generate manifest files
             // TODO: IMPL manifest generation
-            pipeline.Add(new LogContextToFile(@"D:\Projects\BuildHLAPI\Builds\BuildContext.json"));
 
             return pipeline;
         }
