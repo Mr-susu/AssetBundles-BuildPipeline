@@ -118,7 +118,7 @@ namespace UnityEditor.Build.Tasks
                 sbOp.info.bundleScenes = assets.Select(x => new SceneLoadInfo
                 {
                     asset = x,
-                    internalName = writeInfo.AssetToFiles[x][0],
+                    internalName = Path.GetFileName(writeInfo.AssetToFiles[x][0]),
                     address = buildContent.Addresses[x]
                 }).ToList();
             }
