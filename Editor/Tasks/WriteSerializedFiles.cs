@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.Build.WriteTypes;
 using UnityEditor.Build.Interfaces;
 using UnityEditor.Build.Utilities;
@@ -28,7 +30,10 @@ namespace UnityEditor.Build.Tasks
             if (!useCache)
                 return new Hash128();
 
-            return HashingMethods.CalculateMD5Hash(k_Version, operation, settings, globalUsage);
+            string[] assetHashes = new string[operation.command.serializeObjects.Count];
+            for (var index = 0; index < operation.command.serializeObjects.Count; index++)
+                assetHashes[index] = AssetDatabase.GetAssetDependencyHash(operation.command.serializeObjects[index].serializationObject.guid.ToString()).ToString();
+            return HashingMethods.CalculateMD5Hash(k_Version, operation, assetHashes, settings, globalUsage);
         }
 
         public static BuildPipelineCodes Run(IBuildParams buildParams, IDependencyInfo dependencyInfo, IWriteInfo writeInfo, IResultInfo output, IProgressTracker tracker = null)
@@ -49,6 +54,9 @@ namespace UnityEditor.Build.Tasks
                     SetOutputInformation(op.command.internalName, result, output);
                     continue;
                 }
+
+                if (!tracker.UpdateInfoUnchecked(op.command.internalName))
+                    return BuildPipelineCodes.Canceled;
 
                 result = op.Write(buildParams.GetTempOrCacheBuildPath(hash), buildParams.BundleSettings, globalUSage);
                 SetOutputInformation(op.command.internalName, result, output);
