@@ -27,6 +27,7 @@ namespace UnityEditor.Build
                 throw new InvalidOperationException(string.Format("Passed in type '{0}' is not an interface.", type));
             if (!(contextObject is T))
                 throw new InvalidOperationException(string.Format("'{0}' is not of passed in type '{1}'.", contextObject.GetType(), type));
+            // TODO: Error on override context
             m_ContextObjects[typeof(T)] = contextObject;
         }
 
@@ -38,6 +39,7 @@ namespace UnityEditor.Build
             {
                 if (!iCType.IsAssignableFrom(iType) || iType == iCType)
                     continue;
+                // TODO: Error on override context
                 m_ContextObjects[iType] = contextObject;
             }
         }

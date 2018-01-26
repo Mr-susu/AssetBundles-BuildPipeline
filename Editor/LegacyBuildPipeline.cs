@@ -8,12 +8,14 @@ using UnityEngine;
 
 namespace UnityEditor.Build
 {
+    // TODO: Pester Bill for new class name
     public static class LegacyBuildPipeline
     {
         public const string kTempLegacyBuildPath = "Temp/LegacyBuildData";
 
         public static AssetBundleManifest BuildAssetBundles(string outputPath, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
+            // TODO: Rename BuildInput -> BundleBuildInput as BuildInput is too generic
             var buildInput = BundleBuildInterface.GenerateBuildInput();
             return BuildAssetBundles_Internal(outputPath, new BundleContent(buildInput), assetBundleOptions, targetPlatform);
         }
@@ -23,6 +25,7 @@ namespace UnityEditor.Build
             return BuildAssetBundles_Internal(outputPath, new BundleContent(builds), assetBundleOptions, targetPlatform);
         }
 
+        // TODO: Move to BundleBuildPipeline
         internal static AssetBundleManifest BuildAssetBundles_Internal(string outputPath, IBuildContent buildInput, BuildAssetBundleOptions assetBundleOptions, BuildTarget targetPlatform)
         {
             BuildCompression compression = BuildCompression.DefaultLZMA;
@@ -51,7 +54,7 @@ namespace UnityEditor.Build
                     buildContext.SetContextObject(BundleBuildPipeline.BuildCallbacks);
                     buildContext.SetContextObject(new Unity5PackedIdentifiers());
 
-                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AssetBundleCompatible);
+                    var pipeline = BuildPipeline.CreatePipeline(PipelineTasks.AssetBundleCompatible);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

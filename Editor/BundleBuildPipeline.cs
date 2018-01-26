@@ -5,6 +5,8 @@ using UnityEditor.Experimental.Build.Player;
 
 namespace UnityEditor.Build.AssetBundle
 {
+    // TODO: Rename to ContentBuildPipeline, ContentPipeline, ContentBuild?
+    // General census is Build, Pipeline, and Bundle are overused in this package
     public static class BundleBuildPipeline
     {
         public const string kTempBundleBuildPath = "Temp/BundleBuildData";
@@ -54,6 +56,7 @@ namespace UnityEditor.Build.AssetBundle
             {
                 using (var buildCleanup = new BuildStateCleanup(true, kTempBundleBuildPath))
                 {
+                    // TODO: CONSISTANT NAMING MF'ER
                     var buildInput = new BundleContent(input);
                     var buildParams = new BuildParams(settings, compression, outputFolder, kTempBundleBuildPath, useCache);
 
@@ -63,7 +66,7 @@ namespace UnityEditor.Build.AssetBundle
                     buildContext.SetContextObject(result);
                     buildContext.SetContextObject(BuildCallbacks);
 
-                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.AutopackReleaseContent);
+                    var pipeline = BuildPipeline.CreatePipeline(PipelineTasks.AutopackReleaseContent);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

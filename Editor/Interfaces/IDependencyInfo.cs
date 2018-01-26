@@ -5,6 +5,7 @@ namespace UnityEditor.Build.Interfaces
 {
     public interface IDependencyInfo : IContextObject
     {
+        // TODO: Revisit if these should be combined
         Dictionary<GUID, AssetLoadInfo> AssetInfo { get; }
         Dictionary<GUID, BuildUsageTagSet> AssetUsage { get; }
 

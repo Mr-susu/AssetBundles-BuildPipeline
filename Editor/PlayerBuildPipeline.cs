@@ -66,7 +66,7 @@ namespace UnityEditor.Build.Player
                     buildContext.SetContextObject(result);
                     buildContext.SetContextObject(BuildCallbacks);
 
-                    var pipeline = BuildPipeline.CreatePipeline(Pipelines.PlayerScriptsOnly);
+                    var pipeline = BuildPipeline.CreatePipeline(PipelineTasks.PlayerScriptsOnly);
                     exitCode = BuildRunner.Validate(pipeline, buildContext);
                     if (exitCode >= BuildPipelineCodes.Success)
                         exitCode = BuildRunner.Run(pipeline, buildContext);

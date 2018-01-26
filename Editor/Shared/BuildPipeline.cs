@@ -6,7 +6,7 @@ using UnityEditor.Build.Tasks;
 
 namespace UnityEditor.Build
 {
-    public enum Pipelines
+    public enum PipelineTasks
     {
         PlayerScriptsOnly,
         AssetBundleCompatible,
@@ -16,23 +16,25 @@ namespace UnityEditor.Build
 
     public static class BuildPipeline
     {
-        public static IList<IBuildTask> CreatePipeline(Pipelines pipeline)
+        public static IList<IBuildTask> CreatePipeline(PipelineTasks pipeline)
         {
             switch (pipeline)
             {
-                case Pipelines.AssetBundleCompatible:
+                case PipelineTasks.AssetBundleCompatible:
                     return AssetBundleCompatible();
-                case Pipelines.PlayerScriptsOnly:
+                case PipelineTasks.PlayerScriptsOnly:
                     return PlayerScriptsOnly();
-                case Pipelines.AutopackReleaseContent:
+                case PipelineTasks.AutopackReleaseContent:
                     return AutopackReleaseContent();
                 default:
                     throw new NotImplementedException(string.Format("Pipeline '{0}' not yet implemented.", pipeline));
             }
         }
 
-        public static IList<IBuildTask> AutopackReleaseContent()
+        static IList<IBuildTask> AutopackReleaseContent()
         {
+            // TODO: Fix bug with ProjectInCleanState where it still wipes out scene state due to running the pipeline
+
             var pipeline = new List<IBuildTask>();
 
             // Setup
@@ -82,8 +84,10 @@ namespace UnityEditor.Build
             return pipeline;
         }
 
-        public static IList<IBuildTask> AssetBundleCompatible()
+        static IList<IBuildTask> AssetBundleCompatible()
         {
+            // TODO: Fix bug with ProjectInCleanState where it still wipes out scene state due to running the pipeline
+
             var pipeline = new List<IBuildTask>();
 
             // Setup
@@ -115,7 +119,7 @@ namespace UnityEditor.Build
             pipeline.Add(new PostWritingCallback());
 
             // Generate manifest files
-            // TODO: IMPL manifest generation
+            // TODO: IMPL manifest generation - YES!
 
             return pipeline;
         }

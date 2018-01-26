@@ -19,7 +19,7 @@ namespace UnityEditor.Build
             public BuildTarget buildTarget;
             public BuildTargetGroup buildGroup;
             public CompressionType compressionType;
-            public Pipelines packPipeline;
+            public PipelineTasks packPipeline;
             public bool useBuildCache;
             public bool useExperimentalPipeline;
             public string outputPath;
@@ -45,7 +45,7 @@ namespace UnityEditor.Build
             var window = GetWindow<DebugBundleBuildWindow>("Debug Build");
             window.m_Settings.buildTarget = EditorUserBuildSettings.activeBuildTarget;
             window.m_Settings.buildGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            window.m_Settings.packPipeline = Pipelines.AssetBundleCompatible;
+            window.m_Settings.packPipeline = PipelineTasks.AssetBundleCompatible;
             window.m_Settings.useExperimentalPipeline = true;
 
             window.Show();
@@ -214,6 +214,7 @@ namespace UnityEditor.Build
                 using (var buildCleanup = new BuildStateCleanup(true, BundleBuildPipeline.kTempBundleBuildPath))
                 {
                     var buildParams = new BuildParams(scriptSettings, bundleSettings, compression, m_Settings.outputPath, BundleBuildPipeline.kTempBundleBuildPath, m_Settings.useBuildCache);
+                    // TODO: Rename BuildInput -> BundleBuildInput as BuildInput is too generic
                     var buildLayout = new BundleContent(BundleBuildInterface.GenerateBuildInput());
 
                     var buildContext = new BuildContext(buildLayout, buildParams, progressTracker);
